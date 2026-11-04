@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rotations</title>
+<style>
+  :root{--teal:#376f7a;--teal2:#4c8c8c;--aqua:#a0e7e5;--cream:#fff4e6;--peach:#ffe6cc;--gold:#d99a3d;--ink:#263b40;
+        --good:#2e7d4f;--goodbg:#e3f4e8;--bad:#b3412e;--badbg:#fbe5e0;--warn:#8a6100;--warnbg:#fff3cd;--line:#e6cfb2}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Helvetica Neue",Arial,sans-serif;color:var(--ink);background:#fbf7f1;line-height:1.45}
+  header{background:linear-gradient(135deg,var(--teal2),var(--aqua));color:#fff;padding:14px 16px;text-align:center;border-radius:0 0 12px 12px}
+  header h1{margin:0;font-size:1.45rem} header p{margin:4px 0 0;font-size:.95rem}
+  main{max-width:860px;margin:0 auto;padding:14px 16px 40px}
+  .card{background:var(--cream);border:3px solid var(--teal2);border-radius:12px;padding:14px 16px;margin:14px 0}
+  h2{color:var(--teal2);margin:0 0 8px;font-size:1.2rem} h3{margin:10px 0 6px;font-size:1.05rem;color:var(--teal)}
+  button{font:inherit;cursor:pointer;border:none;border-radius:8px;padding:.5rem 1rem;background:var(--teal);color:#fff}
+  button:hover{background:#2b5962} button.ghost{background:#fff;color:var(--teal);border:2px solid var(--teal)}
+  button.small{padding:.25rem .6rem;font-size:.85rem} button:disabled{opacity:.5;cursor:default}
+  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+  .menu button{text-align:left;padding:.7rem .8rem;line-height:1.25}
+  .menu button small{display:block;opacity:.85;font-size:.8rem;margin-top:3px}
+  .menu .start{background:var(--gold)} .menu .start:hover{background:#b98029}
+  .prompt{font-size:1.05rem;margin:0 0 10px}
+  .blank{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;margin:8px 0}
+  .blank label{font-weight:700;min-width:62px;font-family:"Cambria Math","Times New Roman",serif}
+  input[type=text]{font:inherit;font-size:1.05rem;padding:.4rem .5rem;border:2px solid #c9b79f;border-radius:6px;width:100%;max-width:240px;background:#fff}
+  input.ok{border-color:var(--good);background:var(--goodbg)} input.no{border-color:var(--bad);background:var(--badbg)} input.almost{border-color:var(--warn);background:var(--warnbg)}
+  .rulein{display:flex;flex-wrap:wrap;align-items:center;gap:4px;font-family:"Cambria Math","Times New Roman",serif;font-size:1.1rem}
+  .rulein input[type=text]{width:8.5rem;max-width:42vw}
+  .hint{grid-column:1/-1;background:#fff;border-left:4px solid var(--gold);padding:6px 10px;border-radius:4px;font-size:.95rem;display:none}
+  .claims label{display:block;padding:6px 8px;margin:4px 0;border:2px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}
+  .claims label.pick{border-color:var(--teal)}
+  .claims label.ok{border-color:var(--good);background:var(--goodbg)} .claims label.no{border-color:var(--bad);background:var(--badbg)}
+  .fb{margin-top:12px;padding:10px 12px;border-radius:8px;display:none}
+  .fb.good{background:var(--goodbg);border:2px solid var(--good)} .fb.bad{background:var(--badbg);border:2px solid var(--bad)}
+  .fb .step{font-family:"Cambria Math","Times New Roman",serif;margin:3px 0}
+  .tool{display:none} .tool.open{display:block}
+  .tool table{border-collapse:collapse;width:100%;font-size:.95rem} .tool td,.tool th{border:1px solid var(--line);padding:6px;vertical-align:top;background:#fff}
+  .tool th{background:var(--teal2);color:#fff;text-align:left}
+  .formula{font-family:"Cambria Math","Times New Roman",serif;font-size:1.15rem;background:#fff;padding:6px 10px;border-radius:6px;display:inline-block;margin:4px 0}
+  .bar{height:10px;background:#eadbc6;border-radius:6px;overflow:hidden;margin:6px 0 2px} .bar span{display:block;height:100%;background:var(--teal2)}
+  .muted{color:#6b6b6b;font-size:.9rem}
+  .graphwrap{text-align:center} svg{max-width:300px;width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:8px}
+  .legend{font-size:.85rem;margin-top:4px} .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin:0 4px 0 10px}
+  .mc label{display:block;padding:7px 9px;margin:5px 0;border:2px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}
+  .mc label.ok{border-color:var(--good);background:var(--goodbg)} .mc label.no{border-color:var(--bad);background:var(--badbg)}
+  .work{background:#fff;border:1px dashed #c9b79f;border-radius:8px;padding:8px 10px;margin:6px 0;font-family:"Cambria Math","Times New Roman",serif}
+  .stepsList{margin:6px 0 10px;padding-left:1.4rem} .stepsList li{margin:3px 0}
+  select{font:inherit;padding:.35rem;border:2px solid #c9b79f;border-radius:6px;background:#fff}
+  .stds{font-size:.8rem;color:#6b6b6b;margin:8px 0 0}
+  @media (max-width:520px){.blank{grid-template-columns:1fr}.blank label{min-width:0}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Coordinate Methods · Part 3: Rotations</h1>
+  <p>CP2U3 practice · Image #2 on the test · Your progress saves on this device</p>
+</header>
+<main>
+  <div class="row" style="justify-content:space-between">
+    <button class="ghost small" onclick="location.href='index.html'">← All sections</button>
+    <button class="ghost small" id="toolBtn" onclick="toggleTool()">🧰 Toolbox: rotation rules</button>
+  </div>
+
+  <section class="card tool" id="tool">
+    <h2>🧰 Toolbox</h2>
+    <h3>Rotation rules (about the origin)</h3>
+    <table>
+      <tr><th>Rotation</th><th>Rule</th><th>Memory trick</th></tr>
+      <tr><td>90° counterclockwise</td><td class="formula" style="display:table-cell">(x, y) → (−y, x)</td><td>Switch, then make the new first number its opposite.</td></tr>
+      <tr><td>180°</td><td class="formula" style="display:table-cell">(x, y) → (−x, −y)</td><td>Don't switch. Both change sign.</td></tr>
+      <tr><td>270° counterclockwise<br>(same as 90° clockwise)</td><td class="formula" style="display:table-cell">(x, y) → (y, −x)</td><td>Switch, then make the new second number its opposite.</td></tr>
+    </table>
+    <h3>Worked example with negatives</h3>
+    <p style="margin:4px 0">Rotate P(3, −4) 90° counterclockwise: (x, y) → (−y, x).</p>
+    <div class="work">P(3, −4) → (−(−4), 3) = P′(4, 3)</div>
+    <p class="muted" style="margin:2px 0 8px">−y means "the opposite of y". If y is already negative, −y is positive.</p>
+    <p style="margin:4px 0">Rotate P(3, −4) 270° counterclockwise: (x, y) → (y, −x).</p>
+    <div class="work">P(3, −4) → (−4, −3) = P′(−4, −3)</div>
+    <h3>Check with quadrants</h3>
+    <table>
+      <tr><th>Rotation</th><th>A point in Quadrant I moves to…</th></tr>
+      <tr><td>90° counterclockwise</td><td>Quadrant II</td></tr>
+      <tr><td>180°</td><td>Quadrant III</td></tr>
+      <tr><td>270° counterclockwise</td><td>Quadrant IV</td></tr>
+    </table>
+    <p class="muted" style="margin:6px 0 0">Counterclockwise goes I → II → III → IV. A rotation keeps every length and angle the same, and every point stays the same distance from the origin.</p>
+  </section>
+
+  <section class="card" id="menuCard">
+    <h2>Pick what to practice</h2>
+    <p class="muted" style="margin-top:0">New to this? Do <b>Start Here</b> first. Then try a mixed set of 6.</p>
+    <div class="menu" id="menu"></div>
+    <div id="stats" style="margin-top:12px"></div>
+    <p class="stds">Standards: HS.G-CO.A.4 · HS.G-CO.A.5</p>
+  </section>
+
+  <section class="card" id="probCard" style="display:none">
+    <div class="row" style="justify-content:space-between">
+      <b id="probTitle"></b><span class="muted" id="probCount"></span>
+    </div>
+    <div class="bar"><span id="probBar" style="width:0"></span></div>
+    <div id="prob"></div>
+    <div class="row" style="margin-top:12px" id="actions">
+      <button id="checkBtn" onclick="check()">Check</button>
+      <button class="ghost" id="similarBtn" onclick="similar()" style="display:none">↻ Try a similar one</button>
+      <button id="nextBtn" onclick="next()" style="display:none">Next →</button>
+      <button class="ghost small" onclick="backToMenu()" style="margin-left:auto">Menu</button>
+    </div>
+    <div class="fb" id="fb"></div>
+  </section>
+
+  <section class="card" id="doneCard" style="display:none"></section>
+</main>
+
+<script>
+/* ---------- math helpers ---------- */
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const M="−";
+/* numbers: integers, or halves written as fractions */
+const num=n=>{if(Number.isInteger(n))return n<0?M+Math.abs(n):""+n;const t=Math.round(Math.abs(n)*2);return (n<0?M:"")+t+"/2"};
+const par=n=>n<0?`(${num(n)})`:num(n);
+function radParts(N){let a=1,b=N;for(let k=Math.floor(Math.sqrt(N));k>1;k--){if(N%(k*k)===0){a=k;b=N/(k*k);break}}return [a,b]}
+function radStr(N){const [a,b]=radParts(N);if(b===1)return ""+a;return (a===1?"":a)+"√"+b}
+function slope(P,Q){const dy=Q[1]-P[1],dx=Q[0]-P[0];if(dx===0)return {und:true,dy,dx};const g=gcd(dy,dx)||1;let n=dy/g,d=dx/g;if(d<0){n=-n;d=-d}return {n,d,dy,dx}}
+const slopeStr=s=>s.und?"undefined":(s.d===1?num(s.n):(s.n<0?M:"")+Math.abs(s.n)+"/"+s.d);
+const sameSlope=(a,b)=>a.und&&b.und||(!a.und&&!b.und&&a.n===b.n&&a.d===b.d);
+const d2=(P,Q)=>(Q[0]-P[0])**2+(Q[1]-P[1])**2;
+const add=(P,v,k=1)=>[P[0]+k*v[0],P[1]+k*v[1]];
+const inRange=pts=>pts.every(p=>Math.abs(p[0])<=12&&Math.abs(p[1])<=12);
+const ptStr=(L,P)=>`${L}(${num(P[0])}, ${num(P[1])})`;
+const pS=P=>`(${num(P[0])}, ${num(P[1])})`;
+const eqP=(a,b)=>Math.abs(a[0]-b[0])<1e-9&&Math.abs(a[1]-b[1])<1e-9;
+function cross(a,b){return a[0]*b[1]-a[1]*b[0]}
+function convexQuad(Q){let s=0;for(let i=0;i<4;i++){const A=Q[i],B=Q[(i+1)%4],C=Q[(i+2)%4];const c=cross([B[0]-A[0],B[1]-A[1]],[C[0]-B[0],C[1]-B[1]]);if(c===0)return false;if(s===0)s=Math.sign(c);else if(Math.sign(c)!==s)return false}return true}
+const LABELS=[["A","B","C","D"],["J","K","L","M"],["Q","R","S","T"],["E","F","G","H"],["P","Q","R","S"],["W","X","Y","Z"]];
+const TRI=[["A","B","C"],["J","K","L"],["D","E","F"],["P","Q","R"],["X","Y","Z"]];
+const PR="′";
+const SUBN=["₀","₁","₂","₃","₄"];
+const nz=(a,b)=>{let v=0;while(v===0)v=rnd(a,b);return v};
+
+/* ---------- coordinate rules ----------
+   A rule is [[ax, ay, a0], [bx, by, b0]]: (x, y) → (ax·x + ay·y + a0, bx·x + by·y + b0) */
+const RULE={T:(a,b)=>[[1,0,a],[0,1,b]],R90:()=>[[0,-1,0],[1,0,0]],R180:()=>[[-1,0,0],[0,-1,0]],R270:()=>[[0,1,0],[-1,0,0]],
+  RX:()=>[[1,0,0],[0,-1,0]],RY:()=>[[-1,0,0],[0,1,0]],D:k=>[[k,0,0],[0,k,0]]};
+const applyR=(r,P)=>[r[0][0]*P[0]+r[0][1]*P[1]+r[0][2],r[1][0]*P[0]+r[1][1]*P[1]+r[1][2]];
+/* do r1 first, then r2 */
+function compose(r1,r2){const sub=row=>[0,1,2].map(j=>row[0]*r1[0][j]+row[1]*r1[1][j]+(j===2?row[2]:0));return [sub(r2[0]),sub(r2[1])]}
+const sameRow=(a,b)=>a.every((v,i)=>Math.abs(v-b[i])<1e-9);
+const sameRule=(a,b)=>sameRow(a[0],b[0])&&sameRow(a[1],b[1]);
+function coefTxt(a,v){if(!v)return num(a);if(a===1)return v;if(a===.5)return "½"+v;if(Number.isInteger(a))return a+v;return "("+num(a)+")"+v}
+function exprStr(e){const t=[[e[0],"x"],[e[1],"y"],[e[2],""]].filter(([c])=>Math.abs(c)>1e-9);if(!t.length)return "0";
+  return t.map(([c,v],i)=>{const body=coefTxt(Math.abs(c),v);return i===0?(c<0?M:"")+body:(c<0?` ${M} `:" + ")+body}).join("")}
+const ruleStr=r=>`(x, y) → (${exprStr(r[0])}, ${exprStr(r[1])})`;
+/* show a substitution: Rule 2's row with Rule 1's expressions plugged in */
+function subTxt(row,r1){const parts=[];
+  [[row[0],r1[0]],[row[1],r1[1]]].forEach(([c,e])=>{if(!c)return;const inner=exprStr(e);const simple=!/[ +−]/.test(inner.replace(/^−/,""));
+    const body=c===1||c===-1?(simple&&c===1?inner:`(${inner})`):`${Math.abs(c)}(${inner})`;parts.push([c,body])});
+  if(row[2])parts.push([row[2],num(Math.abs(row[2]))]);
+  return parts.map(([c,b],i)=>i===0?(c<0?M:"")+b:(c<0?` ${M} `:" + ")+b).join("")||"0"}
+
+/* ---------- parsing a linear expression like −2y + 10 or 2(x − 3) ---------- */
+function parseLin(src){
+  const s=src.replace(/[−–]/g,"-").replace(/[×·]/g,"*").replace(/½/g,"0.5").replace(/\s+/g,"").toLowerCase();
+  if(!s)return null;let i=0,paren=false;
+  const A=(a,b)=>a.map((v,k)=>v+b[k]),Sb=(a,b)=>a.map((v,k)=>v-b[k]),K=a=>!a[0]&&!a[1];
+  const mul=(a,b)=>K(a)?b.map(v=>v*a[2]):K(b)?a.map(v=>v*b[2]):null;
+  function expr(){let v=term();while(s[i]==="+"||s[i]==="-"){const op=s[i++];const t=term();v=op==="+"?A(v,t):Sb(v,t)}return v}
+  function term(){let v=factor();while(i<s.length&&/[*\/\dxy(.]/.test(s[i])){
+      if(s[i]==="/"){i++;const f=factor();if(!K(f)||!f[2])throw 0;v=v.map(x=>x/f[2]);continue}
+      if(s[i]==="*")i++;const f=factor();v=mul(v,f);if(!v)throw 0}return v}
+  function factor(){const c=s[i];
+    if(c==="-"){i++;return factor().map(v=>-v)} if(c==="+"){i++;return factor()}
+    if(c==="("){i++;const v=expr();if(s[i++]!==")")throw 0;if(v[0]||v[1])paren=true;return v}
+    if(c==="x"){i++;return [1,0,0]} if(c==="y"){i++;return [0,1,0]}
+    const m=s.slice(i).match(/^\d+(\.\d+)?|^\.\d+/);if(!m)throw 0;i+=m[0].length;return [0,0,+m[0]]}
+  try{const v=expr();if(i!==s.length)return null;
+    const xs=(s.match(/x/g)||[]).length,ys=(s.match(/y/g)||[]).length;
+    return {v,messy:paren||xs>1||ys>1}}catch(e){return null}}
+function pnum(t){if(t.includes("/")){const [a,b]=t.split("/");return +a/+b}return +t}
+function parsePt(s){const t=s.replace(/[−–]/g,"-").replace(/½/g,"1/2").replace(/\s+/g,"");
+  const m=t.match(/^\(?(-?\d*\.?\d+(?:\/\d+)?),(-?\d*\.?\d+(?:\/\d+)?)\)?$/);if(!m)return null;return [pnum(m[1]),pnum(m[2])]}
+
+/* ---------- answer checkers ---------- */
+function checkRad(s,N){const t=s.replace(/\s+/g,"").replace(/sqrt/gi,"√").replace(/[()]/g,"").replace(/−/g,"-");if(!t)return {st:"no",msg:"Enter a length."};
+  let m=t.match(/^(\d*)√(\d+)$/);let val=null,simplified=false;
+  if(m){const a=m[1]?+m[1]:1,b=+m[2];val=a*a*b;simplified=radParts(b)[0]===1&&b!==1&&!(m[1]==="1")}
+  else if(/^\d+$/.test(t)){val=(+t)**2;simplified=true}
+  else if(/^\d*\.\d+$/.test(t)){const x=+t;if(Math.abs(x-Math.sqrt(N))<0.015)return {st:"almost",msg:`That decimal is close, but write it in simplified radical form: ${radStr(N)}.`};return {st:"no",msg:"Not quite."}}
+  else return {st:"no",msg:"Use simplified radical form, like 3√5 (or 3sqrt5)."};
+  if(val!==N)return {st:"no",msg:"Not quite."};
+  if(!simplified)return {st:"almost",msg:`Right value, but simplify it: ${radStr(N)}.`};
+  return {st:"ok"}}
+function checkSlope(s,sl){const t=s.trim().toLowerCase().replace(/−/g,"-").replace(/\s+/g,"");if(!t)return {st:"no",msg:"Enter a slope."};
+  if(/^(undefined|und|undef|none|dne)$/.test(t))return sl.und?{st:"ok"}:{st:"no",msg:"This slope isn't undefined."};
+  if(sl.und)return {st:"no",msg:"Check the run (x₂ − x₁)."};
+  let m=t.match(/^(-?\d+)\/(-?\d+)$/);let n,d;
+  if(m){n=+m[1];d=+m[2];if(d===0)return {st:"no",msg:"Dividing by 0 means undefined."}}
+  else if(/^-?\d+$/.test(t)){n=+t;d=1}
+  else if(/^-?\d*\.\d+$/.test(t)){const x=+t;if(Math.abs(x-sl.n/sl.d)<1e-9)return {st:"ok"};return {st:"no",msg:"Not quite."}}
+  else return {st:"no",msg:"Write the slope as a fraction like −3/4, an integer, or undefined."};
+  if(n*sl.d===sl.n*d){const g=gcd(n,d);if(g>1)return {st:"almost",msg:`Right value, but simplify it: ${slopeStr(sl)}.`};return {st:"ok"}}
+  return {st:"no",msg:"Not quite."}}
+function checkInt(s,v){const t=s.trim().replace(/−/g,"-");if(!/^-?\d+$/.test(t))return {st:"no",msg:"Enter a whole number."};return +t===v?{st:"ok"}:{st:"no",msg:"Not quite."}}
+function checkPt(s,P,traps=[]){if(!s.trim())return {st:"no",msg:"Enter a point like (3, −2)."};const q=parsePt(s);
+  if(!q)return {st:"no",msg:"Write the point as (x, y), like (3, −2)."};
+  if(eqP(q,P))return {st:"ok"};
+  for(const t of traps)if(eqP(q,t.P))return {st:"no",msg:t.msg};
+  if(eqP(q,[P[1],P[0]]))return {st:"no",msg:"Those numbers are in the wrong order. Write (x, y)."};
+  if(eqP(q,[-P[0],P[1]])||eqP(q,[P[0],-P[1]])||eqP(q,[-P[0],-P[1]]))return {st:"no",msg:"The numbers are right, but a sign is off. Check which coordinate is negative."};
+  return {st:"no",msg:"Not quite."}}
+function checkExpr(s,e,traps=[],what="expression"){if(!s.trim())return {st:"no",msg:`Enter the ${what}.`};const p=parseLin(s);
+  if(!p)return {st:"no",msg:"Write it with x, y and numbers, like −2y + 10."};
+  if(sameRow(p.v,e))return p.messy?{st:"almost",msg:`Right, but simplify it (distribute and combine): ${exprStr(e)}.`}:{st:"ok"};
+  for(const t of traps)if(sameRow(p.v,t.e))return {st:"no",msg:t.msg};
+  if(sameRow(p.v,e.map(v=>-v)))return {st:"no",msg:"Every sign is flipped."};
+  if(Math.abs(p.v[0]-e[0])<1e-9&&Math.abs(p.v[1]-e[1])<1e-9&&Math.abs(p.v[2]+e[2])<1e-9)return {st:"no",msg:"The variable part is right, but the sign of the number is off. Distribute the negative to every term."};
+  return {st:"no",msg:"Not quite."}}
+function checkRuleIn(a,b,r,traps=[]){
+  const pa=parseLin(a),pb=parseLin(b);
+  if(!a.trim()||!b.trim())return {st:"no",msg:"Fill in both coordinates."};
+  if(!pa||!pb)return {st:"no",msg:"Write each coordinate with x, y and numbers, like x + 3 or −2y + 10."};
+  const okA=sameRow(pa.v,r[0]),okB=sameRow(pb.v,r[1]);
+  if(okA&&okB)return (pa.messy||pb.messy)?{st:"almost",msg:`Right rule, but simplify it (distribute and combine): ${ruleStr(r)}.`}:{st:"ok"};
+  for(const t of traps)if(sameRow(pa.v,t.r[0])&&sameRow(pb.v,t.r[1]))return {st:"no",msg:t.msg,which:"both"};
+  if(sameRow(pa.v,r[1])&&sameRow(pb.v,r[0]))return {st:"no",msg:"The two coordinates are switched."};
+  return {st:"no",msg:okA?"The first coordinate is right. Check the second one.":okB?"The second coordinate is right. Check the first one.":"Not quite.",okA,okB}}
+
+/* ---------- graph ---------- */
+const GCOL={pre:{stroke:"#376f7a",fill:"rgba(76,140,140,.18)",dot:"#d99a3d"},img:{stroke:"#b5651d",fill:"rgba(217,154,61,.18)",dot:"#b5651d"},
+  given:{stroke:"#7b5ea7",fill:"rgba(123,94,167,.12)",dot:"#7b5ea7"}};
+function graph(layers){if(!layers||!layers.length)return "";
+  const all=layers.flatMap(l=>l.pts.map(p=>p[1]));const xs=all.map(p=>p[0]),ys=all.map(p=>p[1]);
+  let lo=Math.min(...xs,...ys,0)-2,hi=Math.max(...xs,...ys,0)+2;const S=280,sc=S/(hi-lo),X=x=>(x-lo)*sc,Y=y=>S-(y-lo)*sc;
+  let g=`<svg viewBox="0 0 ${S} ${S}" role="img" aria-label="Graph of the points">`;
+  for(let i=Math.ceil(lo);i<=hi;i++){g+=`<line x1="${X(i)}" y1="0" x2="${X(i)}" y2="${S}" stroke="${i===0?'#555':'#e3e3e3'}" stroke-width="${i===0?1.4:1}"/><line x1="0" y1="${Y(i)}" x2="${S}" y2="${Y(i)}" stroke="${i===0?'#555':'#e3e3e3'}" stroke-width="${i===0?1.4:1}"/>`}
+  layers.forEach(l=>{const c=GCOL[l.kind||"pre"];
+    if(l.poly&&l.pts.length>2)g+=`<polygon points="${l.pts.map(p=>X(p[1][0])+","+Y(p[1][1])).join(" ")}" fill="${c.fill}" stroke="${c.stroke}" stroke-width="2" ${l.kind&&l.kind!=="pre"?'stroke-dasharray="5 3"':""}/>`;
+    else if(l.poly&&l.pts.length===2)g+=`<line x1="${X(l.pts[0][1][0])}" y1="${Y(l.pts[0][1][1])}" x2="${X(l.pts[1][1][0])}" y2="${Y(l.pts[1][1][1])}" stroke="${c.stroke}" stroke-width="2.5" ${l.kind&&l.kind!=="pre"?'stroke-dasharray="5 3"':""}/>`;
+    l.pts.forEach(([L,p])=>{g+=`<circle cx="${X(p[0])}" cy="${Y(p[1])}" r="3.5" fill="${c.dot}"/><text x="${X(p[0])+5}" y="${Y(p[1])-5}" font-size="12" font-weight="700" fill="#263b40">${L}</text>`})});
+  g+="</svg>";
+  const names=layers.filter(l=>l.name);
+  if(names.length>1)g+=`<div class="legend">${names.map(l=>`<i style="background:${GCOL[l.kind||"pre"].stroke}"></i>${l.name}`).join("")}</div>`;
+  return g}
+
+/* ---------- section ---------- */
+/* ---------- shapes and wording shared by sections 2–4 ---------- */
+/* A small triangle or convex quadrilateral. Every coordinate is nonzero and |x| ≠ |y|,
+   so sign slips, swapped coordinates and wrong-direction rotations always give a different point. */
+function genShape(n,lim){for(let t=0;t<4000;t++){
+  let pts=Array.from({length:n},()=>[nz(-lim,lim),nz(-lim,lim)]);
+  if(pts.some(p=>Math.abs(p[0])===Math.abs(p[1])))continue;
+  let bad=false;for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)if(d2(pts[i],pts[j])<5)bad=true;if(bad)continue;
+  if(n===3){if(Math.abs(cross([pts[1][0]-pts[0][0],pts[1][1]-pts[0][1]],[pts[2][0]-pts[0][0],pts[2][1]-pts[0][1]]))<6)continue;return pts}
+  const cx=pts.reduce((s,p)=>s+p[0],0)/n,cy=pts.reduce((s,p)=>s+p[1],0)/n;
+  pts.sort((a,b)=>Math.atan2(a[1]-cy,a[0]-cx)-Math.atan2(b[1]-cy,b[0]-cx));
+  if(!convexQuad(pts))continue;
+  let area=0;for(let i=0;i<4;i++)area+=cross(pts[i],pts[(i+1)%4]);if(Math.abs(area)<16)continue;
+  const k=rnd(0,3);pts=pts.slice(k).concat(pts.slice(0,k));return pts}
+  return n===3?[[1,2],[4,-1],[3,5]]:[[1,2],[4,-1],[6,3],[3,5]]}
+const units=(n,w)=>`${n} unit${n===1?"":"s"} ${w}`;
+function dirTxt(a,b){const h=a>0?units(a,"right"):units(-a,"left"),v=b>0?units(b,"up"):units(-b,"down");return Math.random()<.5?`${v} and ${h}`:`${h} and ${v}`}
+const shapeWord=n=>n===3?"△":"quadrilateral ";
+function nameOf(L){return L.length===3?"△"+L.join(""):L.join("")}
+function nameImg(L,mark=PR){return L.length===3?"△"+L.map(x=>x+mark).join(""):L.map(x=>x+mark).join("")}
+const vlist=(L,pts,mark="")=>pts.map((p,i)=>ptStr(L[i]+mark,p)).join(", ");
+const layer=(L,pts,kind,name,mark="")=>({pts:pts.map((p,i)=>[L[i]+mark,p]),poly:true,kind,name});
+/* names and rules for single transformations */
+const OPS={
+  RX:{r:RULE.RX(),name:"a reflection across the x-axis",short:"Reflect across the x-axis"},
+  RY:{r:RULE.RY(),name:"a reflection across the y-axis",short:"Reflect across the y-axis"},
+  R90:{r:RULE.R90(),name:"a 90° counterclockwise rotation about the origin",short:"Rotate 90° counterclockwise about the origin"},
+  R180:{r:RULE.R180(),name:"a 180° rotation about the origin",short:"Rotate 180° about the origin"},
+  R270:{r:RULE.R270(),name:"a 270° counterclockwise rotation about the origin",short:"Rotate 270° counterclockwise about the origin"}};
+
+/* ---------- worked steps, hints and common mistakes for one transformation ---------- */
+/* plug a point into one coordinate of a rule: [0,-1,0] with (3, −4) → "−(−4)" */
+function plug(row,P){const parts=[];
+  [[row[0],P[0]],[row[1],P[1]]].forEach(([c,v],i)=>{if(!c)return;const a=Math.abs(c);
+    const body=a===1?(parts.length===0&&c>0?num(v):par(v)):`${a===.5?"½":num(a)}(${num(v)})`;parts.push([c,body])});
+  if(row[2])parts.push([row[2],num(Math.abs(row[2]))]);
+  return parts.map(([c,b],i)=>i===0?(c<0?M:"")+b:(c<0?` ${M} `:" + ")+b).join("")||"0"}
+function ptStep(Lp,P,r,Lq){const Q=applyR(r,P);const mid=`(${plug(r[0],P)}, ${plug(r[1],P)})`;
+  return `${ptStr(Lp,P)} → ${mid.replace(/\s/g,"")===pS(Q).replace(/\s/g,"")?"":mid+" = "}${ptStr(Lq,Q)}`}
+function ptHints(Lp,P,r,ruleTxt){return [
+  `Use the rule ${ruleTxt||ruleStr(r)} with x = ${num(P[0])} and y = ${num(P[1])}.`,
+  `${ptStr(Lp,P)} → (${plug(r[0],P)}, ${plug(r[1],P)}). Simplify each coordinate.`]}
+/* op: {kind:'T',a,b} | {kind:'RX'|'RY'|'R90'|'R180'|'R270'} | {kind:'D',k} */
+function opRule(op){return op.kind==="T"?RULE.T(op.a,op.b):op.kind==="D"?RULE.D(op.k):RULE[op.kind]()}
+function opName(op){return op.kind==="T"?`a translation ${op.txt}`:op.kind==="D"?`a dilation by a scale factor of ${num(op.k)} centered at the origin`:OPS[op.kind].name}
+function opShort(op){return op.kind==="T"?`Translate ${op.txt}`:op.kind==="D"?`Dilate by a scale factor of ${num(op.k)} centered at the origin`:OPS[op.kind].short}
+function mkT(a,b){return {kind:"T",a,b,txt:dirTxt(a,b)}}
+/* wrong answers students often give, with the message to show */
+function ptTraps(op,P){const [x,y]=P;let t=[];
+  if(op.kind==="T"){const {a,b}=op;t=[
+    {P:[x+a,y-b],msg:"Check up and down. Up adds to y and down subtracts from y."},
+    {P:[x-a,y+b],msg:"Check left and right. Right adds to x and left subtracts from x."},
+    {P:[x-a,y-b],msg:"Both directions are backward. Right and up add; left and down subtract."},
+    {P:[x+b,y+a],msg:"The moves are on the wrong coordinates. Left/right changes x, and up/down changes y."}]}
+  else if(op.kind==="RX")t=[{P:[-x,y],msg:"That's a reflection across the y-axis. Across the x-axis, x stays the same and y changes sign."},{P:[-x,-y],msg:"Only one coordinate changes sign in a reflection across an axis."}];
+  else if(op.kind==="RY")t=[{P:[x,-y],msg:"That's a reflection across the x-axis. Across the y-axis, y stays the same and x changes sign."},{P:[-x,-y],msg:"Only one coordinate changes sign in a reflection across an axis."}];
+  else if(op.kind==="D"){const k=op.k;t=[{P:[x+k,y+k],msg:`A dilation multiplies by the scale factor. It doesn't add ${num(k)}.`},{P:[k*x,y],msg:"Multiply both coordinates by the scale factor, not just x."},{P:[x,k*y],msg:"Multiply both coordinates by the scale factor, not just y."}]}
+  else if(op.kind==="R90")t=[{P:[y,-x],msg:"That's 90° clockwise. 90° counterclockwise is (x, y) → (−y, x)."},{P:[-x,y],msg:"Switch the coordinates too. 90° counterclockwise is (x, y) → (−y, x)."},{P:[y,x],msg:"Close. The new x is the opposite of the old y. The opposite of a negative is positive."}];
+  else if(op.kind==="R270")t=[{P:[-y,x],msg:"That's 90° counterclockwise. 270° counterclockwise is (x, y) → (y, −x), the same as 90° clockwise."},{P:[x,-y],msg:"Switch the coordinates too. 270° counterclockwise is (x, y) → (y, −x)."},{P:[y,x],msg:"Close. The new y is the opposite of the old x. The opposite of a negative is positive."}];
+  else if(op.kind==="R180")t=[{P:[-x,y],msg:"A 180° rotation changes the sign of both coordinates."},{P:[x,-y],msg:"A 180° rotation changes the sign of both coordinates."},{P:[-y,x],msg:"That's only a 90° turn. 180° is (x, y) → (−x, −y)."},{P:[y,-x],msg:"That's only a 90° turn. 180° is (x, y) → (−x, −y)."}];
+  const Q=applyR(opRule(op),P);const seen=[];
+  return t.filter(o=>{if(eqP(o.P,Q)||seen.some(s=>eqP(s,o.P)))return false;seen.push(o.P);return true})}
+function ruleTraps(op){let t=[];
+  if(op.kind==="T"){const {a,b}=op;t=[{r:RULE.T(a,-b),msg:"Check up and down. Up is + and down is − on y."},{r:RULE.T(-a,b),msg:"Check left and right. Right is + and left is − on x."},{r:RULE.T(-a,-b),msg:"Both signs are backward."},{r:RULE.T(b,a),msg:"Left/right goes with x, and up/down goes with y."}]}
+  else if(op.kind==="RX")t=[{r:RULE.RY(),msg:"That's the rule for the y-axis. Across the x-axis: (x, y) → (x, −y)."},{r:RULE.R180(),msg:"Only one coordinate changes sign."}];
+  else if(op.kind==="RY")t=[{r:RULE.RX(),msg:"That's the rule for the x-axis. Across the y-axis: (x, y) → (−x, y)."},{r:RULE.R180(),msg:"Only one coordinate changes sign."}];
+  else if(op.kind==="D")t=[{r:RULE.T(op.k,op.k),msg:"A dilation multiplies by the scale factor. It doesn't add."}];
+  else if(op.kind==="R90")t=[{r:RULE.R270(),msg:"That's clockwise. 90° counterclockwise is (x, y) → (−y, x)."},{r:RULE.RY(),msg:"Switch the coordinates too: (x, y) → (−y, x)."}];
+  else if(op.kind==="R270")t=[{r:RULE.R90(),msg:"That's 90° counterclockwise. 270° counterclockwise is (x, y) → (y, −x)."},{r:RULE.RX(),msg:"Switch the coordinates too: (x, y) → (y, −x)."}];
+  else if(op.kind==="R180")t=[{r:RULE.RY(),msg:"Both coordinates change sign."},{r:RULE.RX(),msg:"Both coordinates change sign."}];
+  const right=opRule(op);return t.filter(o=>!sameRule(o.r,right))}
+function ruleHints(op){const r=opRule(op);
+  if(op.kind==="T"){const {a,b}=op;return ["Left/right changes x. Up/down changes y. Right and up are +, left and down are −.",
+    `${a>0?units(a,"right"):units(-a,"left")} → x ${a<0?M:"+"} ${Math.abs(a)}. ${b>0?units(b,"up"):units(-b,"down")} → y ${b<0?M:"+"} ${Math.abs(b)}.`]}
+  if(op.kind==="RX")return ["Points flip over the x-axis, so they stay the same distance left or right.","x stays the same and y changes sign."];
+  if(op.kind==="RY")return ["Points flip over the y-axis, so they stay the same height.","y stays the same and x changes sign."];
+  if(op.kind==="D")return ["A dilation centered at the origin multiplies each coordinate.",`Multiply both x and y by ${num(op.k)}.`];
+  if(op.kind==="R90")return ["90° counterclockwise: the coordinates switch places and one changes sign.","The new x is the opposite of the old y, and the new y is the old x."];
+  if(op.kind==="R270")return ["270° counterclockwise is the same as 90° clockwise. The coordinates switch places and one changes sign.","The new x is the old y, and the new y is the opposite of the old x."];
+  if(op.kind==="R180")return ["A 180° rotation is a half turn. The coordinates don't switch places.","Both coordinates change sign."];
+  return ["",""]}
+function ruleBlank(op,label="Rule"){const r=opRule(op);return {label,type:"rule",r,traps:ruleTraps(op),hints:ruleHints(op),step:`Rule: ${ruleStr(r)}`}}
+/* problem: apply one transformation to a whole shape */
+function shapeProblem(kind,title,op,n,lim){for(let t=0;t<500;t++){
+  const pts=genShape(n,lim),r=opRule(op),img=pts.map(p=>applyR(r,p));if(!inRange(img))continue;
+  const L=pick(n===3?TRI:LABELS);
+  return {kind,title,
+    prompt:`${n===3?"△"+L.join(""):"Quadrilateral "+L.join("")} has vertices ${vlist(L,pts)}. Find the image of each vertex under <b>${opName(op)}</b>. Then write the coordinate rule.`,
+    layers:[layer(L,pts,"pre","pre-image")],
+    after:[layer(L,pts,"pre","pre-image"),layer(L,img,"img","image",PR)],
+    blanks:pts.map((p,i)=>({label:L[i]+PR,type:"pt",P:img[i],traps:ptTraps(op,p),hints:ptHints(L[i],p,r),step:ptStep(L[i],p,r,L[i]+PR)})).concat([ruleBlank(op)]),
+    meta:{op,pts,img}}}
+  return null}
+/* near-miss image for "is it the image?" problems */
+function nearMiss(op,pts,kinds){const r=opRule(op),good=pts.map(p=>applyR(r,p));
+  for(let t=0;t<60;t++){const how=pick(kinds);let img,note;
+    if(how==="off"){const i=rnd(0,pts.length-1),d=pick([[1,0],[-1,0],[0,1],[0,-1]]);img=good.map((q,j)=>j===i?add(q,d):q);note="off"}
+    else{const tr=ptTraps(op,pts[0]);if(!tr.length)continue;const w=pick(ruleTraps(op).length?ruleTraps(op):[]);if(!w)continue;
+      img=pts.map(p=>applyR(w.r,p));note=w.msg}
+    if(!inRange(img)||img.every((q,j)=>eqP(q,good[j])))continue;return {img,note}}
+  return null}
+/* claim problem: is this the image under op? */
+function isImageProblem(kind,title,op,truth,n,lim,missKinds){for(let t=0;t<300;t++){
+  const pts=genShape(n,lim),r=opRule(op),good=pts.map(p=>applyR(r,p));if(!inRange(good))continue;
+  let given=good,note="";if(!truth){const m=nearMiss(op,pts,missKinds);if(!m)continue;given=m.img;note=m.note}
+  const L=pick(n===3?TRI:LABELS),nm=nameOf(L),ni=nameImg(L);
+  const bad=pts.map((p,i)=>i).filter(i=>!eqP(given[i],good[i]));
+  const why=truth?`Every image vertex you found matches ${ni}, so ${ni} is the image of ${nm} under ${opName(op)}.`
+    :`${L[bad[0]]}${PR} should be ${pS(good[bad[0]])}, but the given ${L[bad[0]]}${PR} is ${pS(given[bad[0]])}${bad.length>1?` (and ${bad.length-1} more vertex${bad.length>2?"es":""} don't match)`:""}. ${note==="off"?"Only one vertex is off, which is easy to miss on a graph. ":note?note.replace(/^That's/,"The given image is")+" ":""}So ${ni} is not the image.`;
+  return {kind,title,openGraph:true,
+    prompt:`Prove or disprove that ${ni} with vertices ${vlist(L,given,PR)} is the image of ${nm} with vertices ${vlist(L,pts)} under <b>${opName(op)}</b>. Find the image of each vertex, then decide.`,
+    layers:[layer(L,pts,"pre","pre-image"),{...layer(L,given,"given","given image",PR)}],
+    after:[layer(L,pts,"pre","pre-image"),layer(L,good,"img","correct image",PR)].concat(truth?[]:[{...layer(L,given,"given","given image",PR),pts:given.map(p=>["",p])}]),
+    blanks:pts.map((p,i)=>({label:L[i]+PR,type:"pt",P:good[i],traps:[],hints:ptHints(L[i],p,r),step:ptStep(L[i],p,r,L[i]+PR)})),
+    claim:{yes:`${ni} is the image of ${nm} under ${opName(op)}.`,no:`${ni} is not the image of ${nm} under ${opName(op)}.`,truth,why},
+    meta:{op,pts,good,given,truth}}}
+  return null}
+/* find-the-mistake wrapper: right answer + 3 wrong explanations */
+function mistakeProblem(kind,T){return {kind,title:"Find the mistake",prompt:T.prompt||"A student wrote this work. What mistake did the student make?",
+  layers:T.layers||null,work:T.work,mc:shuffle([{t:T.right,ok:true}].concat(T.wrong.map(w=>({t:w,ok:false})))),why:T.why,meta:{scenario:T.sc}}}
+function randPt(lim){let P;do{P=[nz(-lim,lim),nz(-lim,lim)]}while(Math.abs(P[0])===Math.abs(P[1]));return P}
+
+/* ===== Section 3: Rotations ===== */
+const STORE="cm3stats";
+const KEYS=["−","(",")",",","x","y"];
+const ROTW={R90:"90° counterclockwise",R180:"180°",R270:"270° counterclockwise"};
+
+/* ---------- Start Here: rotate one point ---------- */
+function rotBlanks(Lp,P,kind){const op={kind},r=opRule(op),Q=applyR(r,P),[x,y]=P;let hx,hy;
+  if(kind==="R90"){hx=["90° counterclockwise: (x, y) → (−y, x). The new x is the opposite of the old y.",`The old y is ${num(y)}. Its opposite is ${M}(${num(y)}).`];
+    hy=["The new y is the old x.",`The old x is ${num(x)}.`]}
+  else if(kind==="R270"){hx=["270° counterclockwise: (x, y) → (y, −x). The new x is the old y.",`The old y is ${num(y)}.`];
+    hy=["The new y is the opposite of the old x.",`The old x is ${num(x)}. Its opposite is ${M}(${num(x)}).`]}
+  else{hx=["180°: (x, y) → (−x, −y). The new x is the opposite of the old x.",`${M}(${num(x)})`];hy=["The new y is the opposite of the old y.",`${M}(${num(y)})`]}
+  return [{label:"new x",type:"int",v:Q[0],hints:hx,step:`new x = ${plug(r[0],P)} = ${num(Q[0])}`},
+    {label:"new y",type:"int",v:Q[1],hints:hy,step:`new y = ${plug(r[1],P)} = ${num(Q[1])}`},
+    {label:Lp+PR,type:"pt",P:Q,traps:ptTraps(op,P),hints:["Put the new x and the new y together.","(new x, new y)"],step:`${ptStr(Lp,P)} → ${ptStr(Lp+PR,Q)}`},
+    ruleBlank(op)]}
+function genRB(){const kind=pick(["R90","R90","R270","R270","R180"]),P=randPt(9),L=pick(LABELS)[0],Q=applyR(RULE[kind](),P);
+  return {kind:"rB",title:"Start Here: rotate a point",builder:true,
+    prompt:`Rotate ${ptStr(L,P)} <b>${ROTW[kind]}</b> about the origin. Fill in each step, then write the coordinate rule.`,
+    layers:[{pts:[[L,P]],kind:"pre"}],after:[{pts:[[L,P]],kind:"pre",name:"start"},{pts:[[L+PR,Q]],kind:"img",name:"image"}],
+    blanks:rotBlanks(L,P,kind),meta:{op:{kind},pts:[P],img:[Q]}}}
+
+/* ---------- whole shapes ---------- */
+const genRot90=()=>shapeProblem("rot90","Rotate 90° counterclockwise",{kind:"R90"},pick([3,4]),9);
+const genRot270=()=>shapeProblem("rot270","Rotate 270° counterclockwise",{kind:"R270"},pick([3,4]),9);
+const genRot180=()=>shapeProblem("rot180","Rotate 180°",{kind:"R180"},pick([3,4]),9);
+const genIsRot=truth=>isImageProblem("isRot","Is it the rotation?",{kind:pick(["R90","R270","R90","R270","R180"])},truth,pick([3,4]),9,["off","rule","rule"]);
+
+/* ---------- which transformation? ---------- */
+function genWhich(){const kind=pick(["R90","R180","R270"]),n=pick([3,4]),pts=genShape(n,9),img=pts.map(p=>applyR(RULE[kind](),p)),L=pick(n===3?TRI:LABELS);
+  const refl=pick(["RX","RY"]);
+  const opts=[["R90","A 90° counterclockwise rotation about the origin"],["R180","A 180° rotation about the origin"],["R270","A 270° counterclockwise rotation about the origin"],[refl,`A reflection across the ${refl==="RX"?"x":"y"}-axis`]];
+  const A=pts[0],A2=img[0],r=RULE[kind]();
+  return {kind:"which",title:"Which transformation?",openGraph:true,
+    prompt:`${nameImg(L)} with vertices ${vlist(L,img,PR)} is the image of ${nameOf(L)} with vertices ${vlist(L,pts)}. Which transformation maps ${nameOf(L)} onto ${nameImg(L)}?`,
+    layers:[layer(L,pts,"pre","pre-image"),layer(L,img,"given","image",PR)],
+    mc:shuffle(opts.map(([k,t])=>({t,ok:k===kind}))),
+    why:`Test one vertex. ${ROTW[kind].replace(/^./,c=>c.toUpperCase())} uses ${ruleStr(r)}: ${ptStep(L[0],A,r,L[0]+PR)}, which matches. ${kind==="R180"?"Both coordinates changed sign and didn't switch places.":"The coordinates switched places and one changed sign."} The other choices give ${opts.filter(([k])=>k!==kind).map(([k])=>pS(applyR(RULE[k](),A))).join(", ")} for ${L[0]}${PR}.`,
+    meta:{kind,pts,img}}}
+
+/* ---------- find the mistake ---------- */
+function genMistake(){const sc=pick(["clockwise","noSwap","r180one","r270as90","doubleNeg"]);
+  for(let t=0;t<300;t++){const L=pick(LABELS)[0];let P=randPt(9);
+    const show=(want,sr)=>`Rotate ${ptStr(L,P)} ${ROTW[want]} about the origin.<br>Rule: ${ruleStr(sr)}<br>${ptStr(L,P)} → ${ptStr(L+PR,applyR(sr,P))}`;
+    if(sc==="clockwise")return mistakeProblem("mistake",{sc,work:show("R90",RULE.R270()),
+      right:"The student rotated 90° clockwise. 90° counterclockwise is (x, y) → (−y, x).",
+      wrong:["A rotation keeps the coordinates in the same order, so the student shouldn't have switched x and y.","The student should have made both coordinates negative.","The student's rule is right, but the point should have been reflected first."],
+      why:`Correct: ${ptStep(L,P,RULE.R90(),L+PR)}. Check with the graph: a 90° counterclockwise turn moves a point from Quadrant I to Quadrant II.`});
+    if(sc==="noSwap")return mistakeProblem("mistake",{sc,work:show("R90",RULE.RY()),
+      right:"The student changed the sign of x but didn't switch the coordinates. That's a reflection across the y-axis. 90° counterclockwise is (x, y) → (−y, x).",
+      wrong:["The student should have changed the sign of y instead of x, and kept the order.","A 90° rotation changes the sign of both coordinates.","The student should have added 90 to each coordinate."],
+      why:`Correct: ${ptStep(L,P,RULE.R90(),L+PR)}.`});
+    if(sc==="r180one"){const sr=pick([RULE.RY(),RULE.RX()]);return mistakeProblem("mistake",{sc,work:show("R180",sr),
+      right:"A 180° rotation changes the sign of both coordinates. The student only changed one, which is a reflection.",
+      wrong:["A 180° rotation switches x and y, so the student should have switched them.","A 180° rotation leaves the point where it is.","The student should have subtracted 180 from each coordinate."],
+      why:`Correct: ${ptStep(L,P,RULE.R180(),L+PR)}.`})}
+    if(sc==="r270as90")return mistakeProblem("mistake",{sc,work:show("R270",RULE.R90()),
+      right:"The student used the 90° counterclockwise rule. 270° counterclockwise is (x, y) → (y, −x), the same as 90° clockwise.",
+      wrong:["270° counterclockwise is (x, y) → (−x, −y).","The student should have used the 90° rule three times, which gives the student's answer.","270° counterclockwise is the same as 90° counterclockwise."],
+      why:`Correct: ${ptStep(L,P,RULE.R270(),L+PR)}.`});
+    if(sc==="doubleNeg"){if(P[1]>0)P=[P[0],-P[1]];const Q=applyR(RULE.R90(),P),bad=[P[1],P[0]];
+      return mistakeProblem("mistake",{sc,work:`Rotate ${ptStr(L,P)} 90° counterclockwise about the origin.<br>Rule: ${ruleStr(RULE.R90())}<br>${ptStr(L,P)} → ${ptStr(L+PR,bad)}`,
+        right:`The rule is right, but −y means the opposite of y. Here y = ${num(P[1])}, so −y = ${M}(${num(P[1])}) = ${num(-P[1])}, not ${num(P[1])}.`,
+        wrong:["The rule is wrong. 90° counterclockwise is (x, y) → (y, −x).","The student should have changed the sign of x too.","A rotation can't move a point into a different quadrant."],
+        why:`Correct: ${ptStep(L,P,RULE.R90(),L+PR)}.`})}}}
+
+const TYPES={
+  rB:{name:"Start Here: Rotate a point",desc:"New x, new y, then the rule",gen:genRB,start:true},
+  rot90:{name:"Rotate 90° counterclockwise",desc:"(x, y) → (−y, x)",gen:genRot90},
+  rot270:{name:"Rotate 270° counterclockwise",desc:"(x, y) → (y, −x)",gen:genRot270},
+  rot180:{name:"Rotate 180°",desc:"(x, y) → (−x, −y)",gen:genRot180},
+  isRot:{name:"Is it the rotation?",desc:"Prove or disprove a given image",gen:genIsRot,claim:true},
+  which:{name:"Which transformation?",desc:"Match the image to the rule",gen:genWhich},
+  mistake:{name:"Find the mistake",desc:"Spot the error in a student's rotation",gen:genMistake},
+  mixed:{name:"⭐ Mixed set of 6",desc:"Like the test: a bit of everything",mixed:true}
+};
+const MIXED=()=>shuffle(["rot90","rot270","isRot","isRot","which","mistake"]);
+
+
+/* ---------- storage ---------- */
+let stats={};try{stats=JSON.parse(localStorage.getItem(STORE)||"{}")}catch(e){}
+function save(){try{localStorage.setItem(STORE,JSON.stringify(stats))}catch(e){}}
+
+/* ---------- session ---------- */
+let S={list:[],i:0,cur:null,mode:null,score:0,attempted:0,checked:false,lastInput:null};
+function makeSet(mode){if(mode!=="mixed")return Array.from({length:6},()=>mode);return MIXED()}
+function genFor(type,truth){const g=TYPES[type].gen;return TYPES[type].claim?g(truth):g()}
+function buildTruths(list){const claims=list.filter(t=>TYPES[t].claim).length;const tr=shuffle(Array.from({length:claims},(_,i)=>i<Math.ceil(claims/2)));let k=0;return list.map(t=>TYPES[t].claim?tr[k++]:null)}
+function start(mode){S={list:makeSet(mode),i:0,mode,score:0,attempted:0};S.truths=buildTruths(S.list);
+  document.getElementById("menuCard").style.display="none";document.getElementById("doneCard").style.display="none";document.getElementById("probCard").style.display="block";load()}
+function load(problem){const type=S.list[S.i];S.cur=problem||genFor(type,S.truths[S.i]);S.checked=false;render();window.scrollTo({top:0,behavior:"smooth"})}
+function blankLabel(b){return b.label.startsWith("m")&&b.type==="slope"&&b.label.length>1?"m<sub>"+b.label.slice(1)+"</sub>":b.label}
+function render(){const p=S.cur;document.getElementById("probTitle").textContent=p.title;document.getElementById("probCount").textContent=`Problem ${S.i+1} of ${S.list.length}`;
+  document.getElementById("probBar").style.width=(S.i/S.list.length*100)+"%";
+  let h=`<p class="prompt">${p.prompt}</p>`;
+  if(p.steps)h+=`<ol class="stepsList">${p.steps.map(s=>`<li>${s}</li>`).join("")}</ol>`;
+  if(p.work)h+=`<div class="work">${p.work}</div>`;
+  if(p.layers&&p.layers.length)h+=`<details ${p.builder||p.openGraph?"open":""} style="margin:6px 0"><summary class="muted" style="cursor:pointer">Show the graph</summary><div class="graphwrap">${graph(p.layers)}</div></details>`;
+  if(p.blanks){h+=`<div class="row" style="margin:6px 0">${KEYS.map(k=>`<button class="ghost small" onclick="ins('${k}')">${k}</button>`).join("")}<span class="muted">tap to type into the last box you clicked</span></div>`;
+    p.blanks.forEach((b,k)=>{
+      const hb=`<button class="ghost small" onclick="hint(${k})" id="hb${k}">💡 Hint</button><div class="hint" id="h${k}"></div>`;
+      if(b.type==="rule")h+=`<div class="blank"><label>${b.label}</label><div class="rulein">(x, y) → (<input type="text" id="b${k}a" autocomplete="off" aria-label="${b.label} first coordinate" onfocus="S.lastInput=this" placeholder="e.g. x + 3">,<input type="text" id="b${k}b" autocomplete="off" aria-label="${b.label} second coordinate" onfocus="S.lastInput=this" placeholder="e.g. y − 5">)</div>${hb}</div>`;
+      else h+=`<div class="blank"><label for="b${k}">${blankLabel(b)} =</label>
+      <input type="text" id="b${k}" autocomplete="off" onfocus="S.lastInput=this" placeholder="${b.type==='slope'?'e.g. −3/4 or undefined':b.type==='rad'?'e.g. 3√5':b.type==='pt'?'e.g. (3, −2)':b.type==='expr'?'e.g. −y + 5':''}">${hb}</div>`})}
+  if(p.claim){h+=`<div class="claims" id="claims">${[["yes",p.claim.yes],["no",p.claim.no]].map(([v,t])=>`<label><input type="radio" name="cl" value="${v}" onchange="markPick(this)"> ${t}</label>`).join("")}</div>`}
+  if(p.mc){h+=`<div class="mc" id="mc">${p.mc.map((o,k)=>`<label><input type="radio" name="mc" value="${k}"> ${o.t}</label>`).join("")}</div>`}
+  document.getElementById("prob").innerHTML=h;const fb=document.getElementById("fb");fb.style.display="none";fb.className="fb";
+  const cb=document.getElementById("checkBtn");cb.style.display="";cb.textContent="Check";document.getElementById("similarBtn").style.display="none";document.getElementById("nextBtn").style.display="none";
+  S.hintLvl={};S.lastInput=null}
+function ins(ch){const el=S.lastInput||document.querySelector("#prob input[type=text]");if(!el)return;const a=el.selectionStart??el.value.length,b=el.selectionEnd??el.value.length;el.value=el.value.slice(0,a)+ch+el.value.slice(b);el.focus();el.selectionStart=el.selectionEnd=a+ch.length}
+function hint(k){const b=S.cur.blanks[k];const lv=(S.hintLvl[k]||0);const el=document.getElementById("h"+k);el.style.display="block";
+  el.innerHTML=b.hints.slice(0,lv+1).map((x,i)=>`<div>${i===0?"Step 1":"Step 2"}: ${x}</div>`).join("");S.hintLvl[k]=Math.min(lv+1,b.hints.length);
+  if(S.hintLvl[k]>=b.hints.length)document.getElementById("hb"+k).disabled=true}
+function markPick(r){document.querySelectorAll("#claims label").forEach(l=>l.classList.toggle("pick",l.contains(r)))}
+function checkBlank(b,k){
+  if(b.type==="rule"){const ea=document.getElementById("b"+k+"a"),eb=document.getElementById("b"+k+"b");const r=checkRuleIn(ea.value,eb.value,b.r,b.traps);
+    [ea,eb].forEach(e=>e.classList.remove("ok","no","almost"));
+    if(r.st==="ok"||r.st==="almost"){ea.classList.add(r.st);eb.classList.add(r.st)}else{ea.classList.add(r.okA?"ok":"no");eb.classList.add(r.okB?"ok":"no")}
+    return r}
+  const el=document.getElementById("b"+k);
+  const r=b.type==="rad"?checkRad(el.value,b.N):b.type==="slope"?checkSlope(el.value,b.s):b.type==="pt"?checkPt(el.value,b.P,b.traps):b.type==="expr"?checkExpr(el.value,b.e,b.traps):checkInt(el.value,b.v);
+  el.classList.remove("ok","no","almost");el.classList.add(r.st);return r}
+function check(){const p=S.cur;let allOk=true,msgs=[],steps=[];
+  if(p.blanks)p.blanks.forEach((b,k)=>{const r=checkBlank(b,k);if(r.st!=="ok"){allOk=false;msgs.push(`<b>${b.label.replace(/ \(.*/,"")}:</b> ${r.msg}`)}steps.push(b.step)});
+  let concl="";
+  if(p.claim){const sel=document.querySelector('input[name=cl]:checked');const want=p.claim.truth?"yes":"no";
+    document.querySelectorAll("#claims label").forEach(l=>{const v=l.querySelector("input").value;l.classList.remove("ok","no");if(v===want)l.classList.add("ok");else if(sel&&sel.value===v)l.classList.add("no")});
+    if(!sel||sel.value!==want){allOk=false;if(!sel)msgs.push("<b>Claim:</b> choose one.")}concl=p.claim.why}
+  if(p.mc){const sel=document.querySelector('input[name=mc]:checked');document.querySelectorAll("#mc label").forEach((l,k)=>{l.classList.remove("ok","no");if(p.mc[k].ok)l.classList.add("ok");else if(sel&&+sel.value===k)l.classList.add("no")});
+    if(!sel||!p.mc[+sel.value].ok){allOk=false;if(!sel)msgs.push("<b>Answer:</b> choose one.")}concl=p.why}
+  if(!p.claim&&!p.mc&&p.why)concl=p.why;
+  const fb=document.getElementById("fb");fb.style.display="block";fb.className="fb "+(allOk?"good":"bad");
+  fb.innerHTML=(allOk?"<b>✅ Correct!</b>":"<b>Not quite. Here's how it works:</b>")+(msgs.length&&!allOk?`<div style="margin:6px 0">${msgs.join("<br>")}</div>`:"")+
+    (steps.length?`<div style="margin-top:6px">${steps.map(s=>`<div class="step">${s}</div>`).join("")}</div>`:"")+(concl?`<p style="margin:8px 0 0">${concl}</p>`:"")+
+    (p.after?`<div class="graphwrap" style="margin-top:8px">${graph(p.after)}</div>`:"");
+  const t=p.kind;stats[t]=stats[t]||{c:0,a:0};if(!S.checked){stats[t].a++;if(allOk)stats[t].c++;S.attempted++;if(allOk)S.score++;save()}S.checked=true;
+  document.getElementById("checkBtn").style.display="none";document.getElementById("similarBtn").style.display=allOk?"none":"";document.getElementById("nextBtn").style.display="";}
+function similar(){const type=S.list[S.i];load(genFor(type,TYPES[type].claim?Math.random()<.5:null))}
+function next(){S.i++;document.getElementById("checkBtn").textContent="Check";if(S.i>=S.list.length)return done();load()}
+function done(){document.getElementById("probCard").style.display="none";const c=document.getElementById("doneCard");c.style.display="block";
+  c.innerHTML=`<h2>Set complete!</h2><p>You got <b>${S.score}</b> of <b>${S.attempted}</b> right on the first try.</p>
+  <div class="row"><button onclick="start('${S.mode}')">Another set</button><button class="ghost" onclick="backToMenu()">Menu</button></div>`}
+function backToMenu(){document.getElementById("probCard").style.display="none";document.getElementById("doneCard").style.display="none";document.getElementById("menuCard").style.display="block";drawMenu()}
+function toggleTool(){document.getElementById("tool").classList.toggle("open")}
+function drawMenu(){document.getElementById("menu").innerHTML=Object.entries(TYPES).map(([k,t])=>`<button class="${t.start?'start':''}" onclick="start('${k}')">${t.name}<small>${t.desc}</small></button>`).join("");
+  const rows=Object.entries(stats).filter(([k])=>TYPES[k]).map(([k,v])=>`${TYPES[k].name}: ${v.c}/${v.a}`);
+  document.getElementById("stats").innerHTML=rows.length?`<p class="muted" style="margin:0">Your progress (first-try correct / tried): ${rows.join(" · ")}</p>`:""}
+drawMenu();
+</script>
+</body>
+</html>
