@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Classify the Polygon (CER)</title>
+<style>
+  :root{--teal:#376f7a;--teal2:#4c8c8c;--aqua:#a0e7e5;--cream:#fff4e6;--peach:#ffe6cc;--gold:#d99a3d;--ink:#263b40;
+        --good:#2e7d4f;--goodbg:#e3f4e8;--bad:#b3412e;--badbg:#fbe5e0;--warn:#8a6100;--warnbg:#fff3cd;--line:#e6cfb2}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Helvetica Neue",Arial,sans-serif;color:var(--ink);background:#fbf7f1;line-height:1.45}
+  header{background:linear-gradient(135deg,var(--teal2),var(--aqua));color:#fff;padding:14px 16px;text-align:center;border-radius:0 0 12px 12px}
+  header h1{margin:0;font-size:1.45rem} header p{margin:4px 0 0;font-size:.95rem}
+  main{max-width:860px;margin:0 auto;padding:14px 16px 40px}
+  .card{background:var(--cream);border:3px solid var(--teal2);border-radius:12px;padding:14px 16px;margin:14px 0}
+  h2{color:var(--teal2);margin:0 0 8px;font-size:1.2rem} h3{margin:10px 0 6px;font-size:1.05rem;color:var(--teal)}
+  button{font:inherit;cursor:pointer;border:none;border-radius:8px;padding:.5rem 1rem;background:var(--teal);color:#fff}
+  button:hover{background:#2b5962} button.ghost{background:#fff;color:var(--teal);border:2px solid var(--teal)}
+  button.small{padding:.25rem .6rem;font-size:.85rem} button:disabled{opacity:.5;cursor:default}
+  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+  .menu button{text-align:left;padding:.7rem .8rem;line-height:1.25}
+  .menu button small{display:block;opacity:.85;font-size:.8rem;margin-top:3px}
+  .menu .start{background:var(--gold)} .menu .start:hover{background:#b98029}
+  .prompt{font-size:1.05rem;margin:0 0 10px}
+  .pts{font-family:"Cambria Math","Times New Roman",serif;font-size:1.15rem;text-align:center;margin:8px 0 12px}
+  .blank{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;margin:8px 0}
+  .blank label{font-weight:700;min-width:62px;font-family:"Cambria Math","Times New Roman",serif}
+  input[type=text]{font:inherit;font-size:1.05rem;padding:.4rem .5rem;border:2px solid #c9b79f;border-radius:6px;width:100%;max-width:240px;background:#fff}
+  input.ok{border-color:var(--good);background:var(--goodbg)} input.no{border-color:var(--bad);background:var(--badbg)} input.almost{border-color:var(--warn);background:var(--warnbg)}
+  .hint{grid-column:1/-1;background:#fff;border-left:4px solid var(--gold);padding:6px 10px;border-radius:4px;font-size:.95rem;display:none}
+  .claims label{display:block;padding:6px 8px;margin:4px 0;border:2px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}
+  .claims label.pick{border-color:var(--teal)}
+  .claims label.ok{border-color:var(--good);background:var(--goodbg)} .claims label.no{border-color:var(--bad);background:var(--badbg)}
+  .fb{margin-top:12px;padding:10px 12px;border-radius:8px;display:none}
+  .fb.good{background:var(--goodbg);border:2px solid var(--good)} .fb.bad{background:var(--badbg);border:2px solid var(--bad)}
+  .fb .step{font-family:"Cambria Math","Times New Roman",serif;margin:3px 0}
+  .tool{display:none} .tool.open{display:block}
+  .tool table{border-collapse:collapse;width:100%;font-size:.95rem} .tool td,.tool th{border:1px solid var(--line);padding:6px;vertical-align:top;background:#fff}
+  .tool th{background:var(--teal2);color:#fff;text-align:left}
+  .formula{font-family:"Cambria Math","Times New Roman",serif;font-size:1.15rem;background:#fff;padding:6px 10px;border-radius:6px;display:inline-block;margin:4px 0}
+  .bar{height:10px;background:#eadbc6;border-radius:6px;overflow:hidden;margin:6px 0 2px} .bar span{display:block;height:100%;background:var(--teal2)}
+  .muted{color:#6b6b6b;font-size:.9rem}
+  .graphwrap{text-align:center} svg{max-width:300px;width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:8px}
+  .sqrtbtn{font-family:"Cambria Math",serif}
+  .mc label{display:block;padding:7px 9px;margin:5px 0;border:2px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}
+  .mc label.ok{border-color:var(--good);background:var(--goodbg)} .mc label.no{border-color:var(--bad);background:var(--badbg)}
+  .work{background:#fff;border:1px dashed #c9b79f;border-radius:8px;padding:8px 10px;margin:6px 0;font-family:"Cambria Math","Times New Roman",serif}
+  select{font:inherit;padding:.35rem;border:2px solid #c9b79f;border-radius:6px;background:#fff}
+  @media (max-width:520px){.blank{grid-template-columns:1fr}.blank label{min-width:0}}
+  .menu .resume{background:#2e7d4f} .menu .resume:hover{background:#245f3c}
+  .count{font-size:1.05rem;margin:0 0 10px;color:var(--teal)}
+  .note{margin:6px 0;padding:6px 10px;background:#fff;border-left:4px solid var(--gold);border-radius:4px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Coordinate Methods · Part 1: Classify the Polygon (CER)</h1>
+  <p>CP2U3 practice · Use slope and distance as evidence · Your progress saves on this device</p>
+</header>
+<main>
+  <div class="row" style="justify-content:space-between">
+    <button class="ghost small" id="backBtn" onclick="goBack()">← All sections</button>
+    <button class="ghost small" id="toolBtn" onclick="toggleTool()">🧰 Toolbox: slope, distance and shape rules</button>
+  </div>
+
+  <section class="card tool" id="tool">
+    <h2>🧰 Toolbox</h2>
+    <h3>Slope (steepness)</h3>
+    <div class="formula">m = (y₂ − y₁) / (x₂ − x₁) = rise / run</div>
+    <p style="margin:4px 0">Example: J(−1, −5) and K(5, 3)</p>
+    <div class="work">rise = 3 − (−5) = 8 &nbsp;·&nbsp; run = 5 − (−1) = 6 &nbsp;·&nbsp; m = 8/6 = <b>4/3</b></div>
+    <p class="muted" style="margin:2px 0 8px">Subtract in the same order on top and bottom. If the run is 0 the slope is <b>undefined</b> (vertical line). If the rise is 0 the slope is 0.</p>
+    <h3>Distance (length of a side)</h3>
+    <div class="formula">d = √( (x₂ − x₁)² + (y₂ − y₁)² )</div>
+    <p style="margin:4px 0">Same example: J(−1, −5) and K(5, 3)</p>
+    <div class="work">x₂ − x₁ = 5 − (−1) = 6 &nbsp;·&nbsp; y₂ − y₁ = 3 − (−5) = 8<br>d = √(6² + 8²) = √(36 + 64) = √100 = <b>10</b></div>
+    <p class="muted" style="margin:2px 0 8px">It's the Pythagorean Theorem: the run and rise are the legs and the side is the hypotenuse.</p>
+    <h3>Simplified radical form</h3>
+    <div class="work">Pull out the biggest perfect square: √72 = √(36 · 2) = 6√2 &nbsp;·&nbsp; √45 = √(9 · 5) = 3√5 &nbsp;·&nbsp; √34 stays √34</div>
+    <p class="muted" style="margin:2px 0 8px">Type √ with the √ button, or type sqrt. Example: 6√2 or 6sqrt2.</p>
+    <h3>What the evidence proves</h3>
+    <table>
+      <tr><th>Evidence</th><th>What it shows</th></tr>
+      <tr><td>Two slopes are <b>equal</b></td><td>Those sides are <b>parallel</b></td></tr>
+      <tr><td>Two slopes are <b>opposite reciprocals</b> (like 2/3 and −3/2)</td><td>Those sides are <b>perpendicular</b> (right angle)</td></tr>
+      <tr><td>Two lengths are <b>equal</b></td><td>Those sides are <b>congruent</b></td></tr>
+    </table>
+    <h3>Shape checklist</h3>
+    <table>
+      <tr><th>Shape</th><th>How to prove it</th></tr>
+      <tr><td>Isosceles triangle</td><td>At least two sides the same length</td></tr>
+      <tr><td>Right triangle</td><td>Two sides with opposite-reciprocal slopes</td></tr>
+      <tr><td>Trapezoid</td><td>Exactly one pair of opposite sides parallel</td></tr>
+      <tr><td>Parallelogram</td><td>Both pairs of opposite sides parallel</td></tr>
+      <tr><td>Rectangle</td><td>Parallelogram + a right angle (or diagonals the same length)</td></tr>
+      <tr><td>Rhombus</td><td>Parallelogram + two consecutive sides the same length</td></tr>
+      <tr><td>Square</td><td>Rhombus + rectangle: equal consecutive sides and equal diagonals</td></tr>
+    </table>
+  </section>
+
+  <section class="card" id="menuCard">
+    <h2>Pick what to practice</h2>
+    <p class="muted" style="margin-top:0">New to this? Do the two <b>Start Here</b> builders first. Then try a mixed set of 6.</p>
+    <p class="count" id="count"></p>
+    <div class="menu" id="menu"></div>
+    <div id="stats" style="margin-top:12px"></div>
+  </section>
+
+  <section class="card" id="probCard" style="display:none">
+    <div class="row" style="justify-content:space-between">
+      <b id="probTitle"></b><span class="muted" id="probCount"></span>
+    </div>
+    <div class="bar"><span id="probBar" style="width:0"></span></div>
+    <div id="prob"></div>
+    <div class="row" style="margin-top:12px" id="actions">
+      <button id="checkBtn" onclick="check()">Check</button>
+      <button class="ghost" id="similarBtn" onclick="similar()" style="display:none">↻ Try a similar one</button>
+      <button id="nextBtn" onclick="next()" style="display:none">Next →</button>
+      <button class="ghost small" onclick="backToMenu()" style="margin-left:auto">Menu</button>
+    </div>
+    <div class="fb" id="fb"></div>
+  </section>
+
+  <section class="card" id="doneCard" style="display:none"></section>
+</main>
+
+<script>
+/* ---------- math helpers ---------- */
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const M="−"; const num=n=>(n<0?M+Math.abs(n):""+n); const par=n=>n<0?`(${num(n)})`:""+n;
+function radParts(N){let a=1,b=N;for(let k=Math.floor(Math.sqrt(N));k>1;k--){if(N%(k*k)===0){a=k;b=N/(k*k);break}}return [a,b]}
+function radStr(N){const [a,b]=radParts(N);if(b===1)return ""+a;return (a===1?"":a)+"√"+b}
+function slope(P,Q){const dy=Q[1]-P[1],dx=Q[0]-P[0];if(dx===0)return {und:true,dy,dx};const g=gcd(dy,dx)||1;let n=dy/g,d=dx/g;if(d<0){n=-n;d=-d}return {n,d,dy,dx}}
+const slopeStr=s=>s.und?"undefined":(s.d===1?num(s.n):(s.n<0?M:"")+Math.abs(s.n)+"/"+s.d);
+const sameSlope=(a,b)=>a.und&&b.und||(!a.und&&!b.und&&a.n===b.n&&a.d===b.d);
+const perpSlope=(a,b)=>(a.und&&!b.und&&b.n===0)||(b.und&&!a.und&&a.n===0)||(!a.und&&!b.und&&a.n*b.n===-a.d*b.d);
+const d2=(P,Q)=>(Q[0]-P[0])**2+(Q[1]-P[1])**2;
+const add=(P,v,k=1)=>[P[0]+k*v[0],P[1]+k*v[1]];
+const inRange=pts=>pts.every(p=>Math.abs(p[0])<=12&&Math.abs(p[1])<=12);
+const ptStr=(L,P)=>`${L}(${num(P[0])}, ${num(P[1])})`;
+function cross(a,b){return a[0]*b[1]-a[1]*b[0]}
+function convexQuad(Q){let s=0;for(let i=0;i<4;i++){const A=Q[i],B=Q[(i+1)%4],C=Q[(i+2)%4];const c=cross([B[0]-A[0],B[1]-A[1]],[C[0]-B[0],C[1]-B[1]]);if(c===0)return false;if(s===0)s=Math.sign(c);else if(Math.sign(c)!==s)return false}return true}
+const LABELS=[["A","B","C","D"],["J","K","L","M"],["Q","R","S","T"],["E","F","G","H"],["P","Q","R","S"],["W","X","Y","Z"]];
+const TRI=[["A","B","C"],["J","K","L"],["D","E","F"],["P","Q","R"],["X","Y","Z"]];
+const VEC=[];for(let x=-6;x<=6;x++)for(let y=-6;y<=6;y++){if(x*x+y*y>=5)VEC.push([x,y])}
+function startPt(){return [rnd(-6,4),rnd(-7,4)]}
+function rotateLabels(pts){const k=rnd(0,pts.length-1);return pts.slice(k).concat(pts.slice(0,k))}
+
+/* ---------- explanation builders ---------- */
+function distSteps(LA,P,LB,Q){const dx=Q[0]-P[0],dy=Q[1]-P[1],N=dx*dx+dy*dy;const [a,b]=radParts(N);
+  let s=`${LA}${LB} = √((${num(Q[0])} − ${par(P[0])})² + (${num(Q[1])} − ${par(P[1])})²) = √(${par(dx)}² + ${par(dy)}²) = √(${dx*dx} + ${dy*dy}) = √${N}`;
+  if(a>1&&b>1)s+=` = √(${a*a} · ${b}) = ${radStr(N)}`; else if(b===1)s+=` = ${a}`;
+  return s}
+function slopeSteps(LA,P,LB,Q){const s=slope(P,Q);const top=`${num(Q[1])} − ${par(P[1])}`,bot=`${num(Q[0])} − ${par(P[0])}`;
+  if(s.und)return `m<sub>${LA}${LB}</sub> = (${top}) / (${bot}) = ${num(s.dy)}/0 → undefined (vertical)`;
+  const raw=`${num(s.dy)}/${num(s.dx)}`;const fin=slopeStr(s);
+  return `m<sub>${LA}${LB}</sub> = (${top}) / (${bot}) = ${raw}${raw.replace(/−/g,"-")!==fin.replace(/−/g,"-")?` = ${fin}`:""}`}
+function distHints(LA,P,LB,Q){const dx=Q[0]-P[0],dy=Q[1]-P[1];return [
+  `Plug in: ${LA}${LB} = √((${num(Q[0])} − ${par(P[0])})² + (${num(Q[1])} − ${par(P[1])})²)`,
+  `The differences are ${num(dx)} and ${num(dy)}. Square each one, add them, then simplify the square root.`]}
+function slopeHints(LA,P,LB,Q){const s=slope(P,Q);return [
+  `Plug in: m = (${num(Q[1])} − ${par(P[1])}) / (${num(Q[0])} − ${par(P[0])})`,
+  s.und?`The run is 0, so you can't divide. What does that tell you about the slope?`:`The rise is ${num(s.dy)} and the run is ${num(s.dx)}. Write rise/run and simplify.`]}
+
+/* ---------- problem generators ---------- */
+// each returns {kind, title, prompt, pts:[[label,P]], poly:[P..] , blanks:[{label, type:'rad'|'slope', N|s, hints, step}], claim:{yes,no,truth,why} | mc | classify}
+function genIso(truth){for(let t=0;t<400;t++){
+  const w=pick(VEC.filter(v=>Math.abs(v[0])<=4&&Math.abs(v[1])<=4)),A=startPt(),B=add(A,w,2),perp=[-w[1],w[0]],k=pick([1,2,-1,-2]);
+  let C=add(add(A,w),perp,k);
+  if(!truth)C=add(C,pick([[1,0],[0,1],[-1,0],[0,-1],[1,1],[1,-1]]));
+  let tri=[A,B,C]; if(!inRange(tri))continue;
+  const s=[d2(tri[0],tri[1]),d2(tri[1],tri[2]),d2(tri[2],tri[0])];
+  if(cross([B[0]-A[0],B[1]-A[1]],[C[0]-A[0],C[1]-A[1]])===0)continue;
+  const iso=s[0]===s[1]||s[1]===s[2]||s[0]===s[2]; if(iso!==truth)continue;
+  if(Math.max(...s)>260)continue;
+  tri=rotateLabels(tri);const L=pick(TRI);
+  const sides=[[0,1],[1,2],[2,0]];
+  return {kind:"iso",title:"Isosceles triangle?",
+    prompt:`Prove or disprove that the triangle with vertices ${tri.map((p,i)=>ptStr(L[i],p)).join(", ")} is an <b>isosceles triangle</b>. Find the length of each side in simplified radical form, then decide.`,
+    pts:tri.map((p,i)=>[L[i],p]),poly:tri,
+    blanks:sides.map(([i,j])=>({label:L[i]+L[j],type:"rad",N:d2(tri[i],tri[j]),hints:distHints(L[i],tri[i],L[j],tri[j]),step:distSteps(L[i],tri[i],L[j],tri[j])})),
+    claim:{yes:`△${L.join("")} is isosceles.`,no:`△${L.join("")} is not isosceles.`,truth,
+      why:truth?"Two sides have the same length, so the triangle is isosceles.":"All three lengths are different, so the triangle is not isosceles (it's scalene)."}};
+}}
+function paraFrom(u,v){const A=startPt();return [A,add(A,u),add(add(A,u),v),add(A,v)]}
+function genRhombus(truth){for(let t=0;t<600;t++){
+  const u=pick(VEC);let v;
+  if(truth){const c=VEC.filter(x=>d2([0,0],x)===d2([0,0],u)&&cross(u,x)!==0&&(u[0]*x[0]+u[1]*x[1])!==0);if(!c.length)continue;v=pick(c)}
+  else{const c=VEC.filter(x=>{const dd=d2([0,0],x)-d2([0,0],u);return dd!==0&&Math.abs(dd)<=10&&cross(u,x)!==0&&(u[0]*x[0]+u[1]*x[1])!==0});if(!c.length)continue;v=pick(c)}
+  const Q=paraFrom(u,v);if(!inRange(Q)||!convexQuad(Q))continue;const L=pick(LABELS);
+  return {kind:"rhombus",title:"Rhombus?",
+    prompt:`Prove or disprove that the parallelogram with vertices ${Q.map((p,i)=>ptStr(L[i],p)).join(", ")} is a <b>rhombus</b> by finding the length of two consecutive sides. Give your answers in simplified radical form.`,
+    pts:Q.map((p,i)=>[L[i],p]),poly:Q,
+    blanks:[[0,1],[1,2]].map(([i,j])=>({label:L[i]+L[j],type:"rad",N:d2(Q[i],Q[j]),hints:distHints(L[i],Q[i],L[j],Q[j]),step:distSteps(L[i],Q[i],L[j],Q[j])})),
+    claim:{yes:`${L.join("")} is a rhombus.`,no:`${L.join("")} is not a rhombus.`,truth,
+      why:truth?"It's a parallelogram and two consecutive sides are the same length, so all four sides are congruent. It's a rhombus.":"Two consecutive sides have different lengths, so the sides are not all congruent. It's not a rhombus."}};
+}}
+function genRect(truth){for(let t=0;t<600;t++){
+  const u=pick(VEC);let v;
+  if(truth){const g=gcd(u[0],u[1]);const p=[-u[1]/g,u[0]/g];const k=pick([1,2,-1,-2]);v=[p[0]*k,p[1]*k];if(d2([0,0],v)<5)continue}
+  else{const c=VEC.filter(x=>cross(u,x)!==0&&(u[0]*x[0]+u[1]*x[1])!==0&&Math.abs(u[0]*x[0]+u[1]*x[1])<=6);if(!c.length)continue;v=pick(c)}
+  const Q=paraFrom(u,v);if(!inRange(Q)||!convexQuad(Q))continue;const L=pick(LABELS);
+  return {kind:"rect",title:"Rectangle?",
+    prompt:`Prove or disprove that the parallelogram with vertices ${Q.map((p,i)=>ptStr(L[i],p)).join(", ")} is a <b>rectangle</b> by finding the length of the diagonals. Give your answers in simplified radical form.`,
+    pts:Q.map((p,i)=>[L[i],p]),poly:Q,
+    blanks:[[0,2],[1,3]].map(([i,j])=>({label:L[i]+L[j],type:"rad",N:d2(Q[i],Q[j]),hints:distHints(L[i],Q[i],L[j],Q[j]),step:distSteps(L[i],Q[i],L[j],Q[j])})),
+    claim:{yes:`${L.join("")} is a rectangle.`,no:`${L.join("")} is not a rectangle.`,truth,
+      why:truth?"It's a parallelogram with diagonals the same length, so it's a rectangle.":"The diagonals have different lengths, so this parallelogram is not a rectangle."}};
+}}
+function genSquare(truth){for(let t=0;t<800;t++){
+  const u=pick(VEC);let v,note;
+  if(truth){v=[-u[1],u[0]]}
+  else if(Math.random()<.5){const c=VEC.filter(x=>d2([0,0],x)===d2([0,0],u)&&cross(u,x)!==0&&(u[0]*x[0]+u[1]*x[1])!==0);if(!c.length)continue;v=pick(c);note="rhombus"}
+  else{const g=gcd(u[0],u[1]);const p=[-u[1]/g,u[0]/g];const k=pick([1,2,3]);v=[p[0]*k,p[1]*k];if(d2([0,0],v)===d2([0,0],u)||d2([0,0],v)<5)continue;note="rect"}
+  const Q=paraFrom(u,v);if(!inRange(Q)||!convexQuad(Q))continue;const L=pick(LABELS);
+  const B=[[0,1],[1,2]].map(([i,j])=>({label:L[i]+L[j],type:"rad",N:d2(Q[i],Q[j]),hints:distHints(L[i],Q[i],L[j],Q[j]),step:distSteps(L[i],Q[i],L[j],Q[j])}))
+    .concat([[0,2],[1,3]].map(([i,j])=>({label:L[i]+L[j],type:"rad",N:d2(Q[i],Q[j]),hints:distHints(L[i],Q[i],L[j],Q[j]),step:distSteps(L[i],Q[i],L[j],Q[j])})));
+  return {kind:"square",title:"Square?",
+    prompt:`Prove or disprove that the parallelogram with vertices ${Q.map((p,i)=>ptStr(L[i],p)).join(", ")} is a <b>square</b> by finding the length of two consecutive sides and the length of the diagonals. Give your answers in simplified radical form.`,
+    pts:Q.map((p,i)=>[L[i],p]),poly:Q,blanks:B,
+    claim:{yes:`${L.join("")} is a square.`,no:`${L.join("")} is not a square.`,truth,
+      why:truth?"Consecutive sides are equal (rhombus) and the diagonals are equal (rectangle), so it's a square.":
+        note==="rhombus"?"The consecutive sides are equal, but the diagonals aren't. It's a rhombus, not a square.":"The diagonals are equal, but the consecutive sides aren't. It's a rectangle, not a square."}};
+}}
+function genPara(truth){for(let t=0;t<800;t++){
+  const u=pick(VEC),v=pick(VEC);if(cross(u,v)===0)continue;let Q,note="";
+  if(truth)Q=paraFrom(u,v);
+  else if(Math.random()<.5){ // trapezoid: one pair parallel
+    if(u[0]%2||u[1]%2)continue;const A=startPt();Q=[A,add(A,u),add(add(A,v),u,.5),add(A,v)];note="trap"}
+  else{const P=paraFrom(u,v);const dlt=pick([[1,0],[0,1],[-1,0],[0,-1]]);Q=[P[0],P[1],add(P[2],dlt),P[3]];note="none"}
+  if(!inRange(Q)||!convexQuad(Q))continue;
+  const L=pick(LABELS);const s01=slope(Q[0],Q[1]),s32=slope(Q[3],Q[2]),s03=slope(Q[0],Q[3]),s12=slope(Q[1],Q[2]);
+  const isP=sameSlope(s01,s32)&&sameSlope(s03,s12);if(isP!==truth)continue;
+  if(!truth&&note==="none"&&(sameSlope(s01,s32)||sameSlope(s03,s12)))continue;
+  const pairs=[[0,1],[3,2],[0,3],[1,2]];
+  return {kind:"para",title:"Parallelogram?",
+    prompt:`Prove or disprove that the quadrilateral with vertices ${Q.map((p,i)=>ptStr(L[i],p)).join(", ")} is a <b>parallelogram</b> by finding the slopes of opposite sides. Write "undefined" if a slope is undefined.`,
+    pts:Q.map((p,i)=>[L[i],p]),poly:Q,
+    blanks:pairs.map(([i,j])=>({label:"m"+L[i]+L[j],type:"slope",s:slope(Q[i],Q[j]),hints:slopeHints(L[i],Q[i],L[j],Q[j]),step:slopeSteps(L[i],Q[i],L[j],Q[j])})),
+    claim:{yes:`${L.join("")} is a parallelogram.`,no:`${L.join("")} is not a parallelogram.`,truth,
+      why:truth?"Both pairs of opposite sides have equal slopes, so both pairs are parallel. It's a parallelogram.":
+        note==="trap"?"Only one pair of opposite sides is parallel, so it's a trapezoid, not a parallelogram.":"Neither pair of opposite sides has equal slopes, so it's not a parallelogram."}};
+}}
+function genRight(truth){for(let t=0;t<600;t++){
+  const u=pick(VEC),B=startPt(),A=add(B,u);const g=gcd(u[0],u[1]);const p=[-u[1]/g,u[0]/g];const k=pick([1,2,3,-1,-2]);
+  let C=[B[0]+p[0]*k,B[1]+p[1]*k];if(!truth)C=add(C,pick([[1,0],[0,1],[-1,0],[0,-1]]));
+  const tri=[A,B,C];if(!inRange(tri))continue;if(cross([A[0]-B[0],A[1]-B[1]],[C[0]-B[0],C[1]-B[1]])===0)continue;
+  const sBA=slope(B,A),sBC=slope(B,C);if(perpSlope(sBA,sBC)!==truth)continue;if(d2(B,C)<5)continue;
+  const L=pick(TRI);
+  return {kind:"right",title:"Right angle?",
+    prompt:`Prove or disprove that △${L.join("")} with vertices ${tri.map((q,i)=>ptStr(L[i],q)).join(", ")} has a <b>right angle at ${L[1]}</b> by finding the slopes of the two sides that meet at ${L[1]}. Write "undefined" if a slope is undefined.`,
+    pts:tri.map((q,i)=>[L[i],q]),poly:tri,
+    blanks:[[0,1],[1,2]].map(([i,j])=>({label:"m"+L[i]+L[j],type:"slope",s:slope(tri[i],tri[j]),hints:slopeHints(L[i],tri[i],L[j],tri[j]),step:slopeSteps(L[i],tri[i],L[j],tri[j])})),
+    claim:{yes:`∠${L[1]} is a right angle.`,no:`∠${L[1]} is not a right angle.`,truth,
+      why:truth?"The slopes are opposite reciprocals, so the sides are perpendicular and ∠"+L[1]+" is a right angle.":"The slopes are not opposite reciprocals, so the sides are not perpendicular and ∠"+L[1]+" is not a right angle."}};
+}}
+function genMistake(){const sc=pick(["rectSlopes","perpSign","noSquare","negSub","rhombDiag"]);let T;
+  for(let t=0;t<200;t++){
+    if(sc==="rectSlopes"){const u=pick(VEC),c=VEC.filter(x=>cross(u,x)!==0&&(u[0]*x[0]+u[1]*x[1])!==0);const Q=paraFrom(u,pick(c));if(!inRange(Q)||!convexQuad(Q))continue;const L=pick(LABELS);
+      const s1=slopeStr(slope(Q[0],Q[1])),s2=slopeStr(slope(Q[1],Q[2]));
+      T={pts:Q.map((p,i)=>[L[i],p]),poly:Q,work:`m<sub>${L[0]}${L[1]}</sub> = ${s1}, m<sub>${L[3]}${L[2]}</sub> = ${s1}, m<sub>${L[1]}${L[2]}</sub> = ${s2}, m<sub>${L[0]}${L[3]}</sub> = ${s2}.<br><b>Claim:</b> ${L.join("")} is a rectangle because opposite sides have equal slopes.`,
+        right:"Equal slopes only prove the sides are parallel. To prove a rectangle you also need a right angle (opposite-reciprocal slopes), and these slopes aren't opposite reciprocals.",
+        wrong:["The slopes were calculated wrong; opposite sides of a rectangle have opposite-reciprocal slopes.","You can't use slopes to classify a quadrilateral; only lengths work.","A rectangle needs all four slopes to be equal."],
+        why:`The student proved ${L.join("")} is a parallelogram. ${s1} and ${s2} are not opposite reciprocals, so there's no right angle. It's a parallelogram but not a rectangle.`};break}
+    if(sc==="perpSign"){const a=rnd(1,5),b=rnd(2,6);if(gcd(a,b)!==1||a===b)continue;
+      T={pts:null,work:`Line 1 has slope ${a}/${b}. Line 2 has slope ${b}/${a}.<br><b>Claim:</b> The lines are perpendicular because the slopes are reciprocals.`,
+        right:`Perpendicular slopes must be opposite reciprocals. The student flipped the fraction but forgot to change the sign; it should be ${M}${b}/${a}.`,
+        wrong:[`Perpendicular slopes must be equal, so both lines should have a slope of ${a}/${b}.`,`Perpendicular slopes multiply to 1, so the student should check that (${a}/${b}) · (${b}/${a}) = 1.`,`The student should have changed the sign but kept the same fraction, so it should be ${M}${a}/${b}.`],
+        why:`Opposite reciprocals multiply to ${M}1: (${a}/${b}) · (${M}${b}/${a}) = ${M}1. Reciprocals (${a}/${b} and ${b}/${a}) multiply to 1, which isn't perpendicular.`};break}
+    if(sc==="noSquare"){const P=startPt(),Q=add(P,pick(VEC.filter(v=>v[0]>0&&v[1]>0)));if(!inRange([P,Q]))continue;const dx=Q[0]-P[0],dy=Q[1]-P[1];const L=pick(LABELS);
+      T={pts:[[L[0],P],[L[1],Q]],poly:null,work:`Distance from ${ptStr(L[0],P)} to ${ptStr(L[1],Q)}:<br>${L[0]}${L[1]} = √(${dx} + ${dy}) = √${dx+dy}`,
+        right:"The differences have to be squared before adding: √(dx² + dy²).",
+        wrong:["The student should have subtracted the two differences instead of adding them under the square root.","The student should have found the slope first, since distance is rise over run.","The student should have multiplied the two differences together before taking the square root."],
+        why:`${L[0]}${L[1]} = √(${dx}² + ${dy}²) = √(${dx*dx} + ${dy*dy}) = √${dx*dx+dy*dy}${radStr(dx*dx+dy*dy)!=="√"+(dx*dx+dy*dy)?` = ${radStr(dx*dx+dy*dy)}`:""}.`};break}
+    if(sc==="negSub"){const P=[rnd(-7,-1),rnd(-7,-1)],Q=[rnd(1,7),rnd(1,7)];if(Q[0]+P[0]===0||Q[1]+P[1]===0||Q[0]===-P[0])continue;const L=pick(LABELS);const dx=Q[0]-P[0],dy=Q[1]-P[1];
+      T={pts:[[L[0],P],[L[1],Q]],poly:null,work:`Slope from ${ptStr(L[0],P)} to ${ptStr(L[1],Q)}:<br>m = (${Q[1]} − ${par(P[1])}) / (${Q[0]} − ${par(P[0])}) = ${Q[1]+P[1]}/${Q[0]+P[0]}`,
+        right:`Subtracting a negative is adding: ${Q[1]} − ${par(P[1])} = ${Q[1]} + ${-P[1]}, but the student treated it like ${Q[1]} + ${par(P[1])}. The same mistake happened in the run.`,
+        wrong:["The student put the x-values on top; it should be run over rise.","The student should have added the coordinates instead of subtracting.","The slope can't be found because the points are in different quadrants."],
+        why:`m = (${Q[1]} − ${par(P[1])}) / (${Q[0]} − ${par(P[0])}) = ${dy}/${dx}${slopeStr(slope(P,Q))!==dy+"/"+dx?` = ${slopeStr(slope(P,Q))}`:""}.`};break}
+    if(sc==="rhombDiag"){const u=pick(VEC);const g=gcd(u[0],u[1]);const p=[-u[1]/g,u[0]/g];const k=pick([2,3]);const v=[p[0]*k,p[1]*k];if(d2([0,0],v)===d2([0,0],u))continue;const Q=paraFrom(u,v);if(!inRange(Q)||!convexQuad(Q))continue;const L=pick(LABELS);
+      const D=radStr(d2(Q[0],Q[2]));
+      T={pts:Q.map((p,i)=>[L[i],p]),poly:Q,work:`${L[0]}${L[2]} = ${D} and ${L[1]}${L[3]} = ${D}.<br><b>Claim:</b> ${L.join("")} is a rhombus because the diagonals are the same length.`,
+        right:"Equal diagonals prove a rectangle, not a rhombus. To prove a rhombus you need two consecutive sides with the same length.",
+        wrong:["A rhombus needs diagonals with opposite-reciprocal slopes, so lengths can't be used at all.","The diagonals of a rhombus are always different lengths, so the lengths must be wrong.","The student should have found the slopes of the diagonals to show they're parallel."],
+        why:`${L[0]}${L[1]} = ${radStr(d2(Q[0],Q[1]))} and ${L[1]}${L[2]} = ${radStr(d2(Q[1],Q[2]))} are different, so ${L.join("")} is a rectangle but not a rhombus.`};break}
+  }
+  return {kind:"mistake",title:"Find the mistake",prompt:"A student wrote this as evidence. What mistake did the student make?",
+    pts:T.pts,poly:T.poly,work:T.work,mc:shuffle([{t:T.right,ok:true}].concat(T.wrong.map(w=>({t:w,ok:false})))),why:T.why}}
+function genClassify(){const kind=pick(["square","rect","rhombus","para","trap"]);for(let t=0;t<800;t++){
+  const u=pick(VEC);let v,Q;
+  if(kind==="square")v=[-u[1],u[0]];
+  else if(kind==="rect"){const g=gcd(u[0],u[1]);const k=pick([2,3]);v=[-u[1]/g*k,u[0]/g*k];if(d2([0,0],v)===d2([0,0],u))continue}
+  else if(kind==="rhombus"){const c=VEC.filter(x=>d2([0,0],x)===d2([0,0],u)&&cross(u,x)!==0&&(u[0]*x[0]+u[1]*x[1])!==0);if(!c.length)continue;v=pick(c)}
+  else{const c=VEC.filter(x=>cross(u,x)!==0&&(u[0]*x[0]+u[1]*x[1])!==0&&d2([0,0],x)!==d2([0,0],u));v=pick(c)}
+  if(kind==="trap"){if(u[0]%2||u[1]%2)continue;const A=startPt();Q=[A,add(A,u),add(add(A,v),u,.5),add(A,v)]}else Q=paraFrom(u,v);
+  if(!inRange(Q)||!convexQuad(Q))continue;const L=pick(LABELS);
+  const names={square:"Square",rect:"Rectangle",rhombus:"Rhombus",para:"Parallelogram (only)",trap:"Trapezoid"};
+  const sl=[[0,1],[1,2],[2,3],[3,0]].map(([i,j])=>({label:"m"+L[i]+L[j],type:"slope",s:slope(Q[i],Q[j]),hints:slopeHints(L[i],Q[i],L[j],Q[j]),step:slopeSteps(L[i],Q[i],L[j],Q[j])}));
+  const ln=[[0,1],[1,2]].map(([i,j])=>({label:L[i]+L[j],type:"rad",N:d2(Q[i],Q[j]),hints:distHints(L[i],Q[i],L[j],Q[j]),step:distSteps(L[i],Q[i],L[j],Q[j])}));
+  const why={square:"Both pairs of opposite sides are parallel, consecutive slopes are opposite reciprocals (right angles) and consecutive sides are equal. It's a square.",
+    rect:"Both pairs of opposite sides are parallel and consecutive slopes are opposite reciprocals (right angles), but consecutive sides aren't equal. It's a rectangle.",
+    rhombus:"Both pairs of opposite sides are parallel and consecutive sides are equal, but there are no right angles. It's a rhombus.",
+    para:"Both pairs of opposite sides are parallel, but there are no right angles and consecutive sides aren't equal. It's a parallelogram and nothing more specific.",
+    trap:"Only one pair of opposite sides is parallel, so it's a trapezoid."}[kind];
+  return {kind:"classify",title:"Full CER: name the shape",
+    prompt:`Classify the quadrilateral with vertices ${Q.map((p,i)=>ptStr(L[i],p)).join(", ")}. Find the slope of every side and the length of two consecutive sides, then choose the <b>most specific</b> name.`,
+    pts:Q.map((p,i)=>[L[i],p]),poly:Q,blanks:sl.concat(ln),classify:{answer:names[kind],options:Object.values(names),why}};
+}}
+function genSlopeBuilder(){for(let t=0;t<100;t++){const P=[rnd(-8,8),rnd(-8,8)],Q=[rnd(-8,8),rnd(-8,8)];if(P[0]===Q[0]&&Math.random()<.85)continue;if(P[0]===Q[0]&&P[1]===Q[1])continue;
+  const L=pick(LABELS);const s=slope(P,Q);
+  return {kind:"slopeB",title:"Start Here: find the slope",builder:"slope",
+    prompt:`Find the slope of the line through ${ptStr(L[0],P)} and ${ptStr(L[1],Q)}. Fill in each step.`,pts:[[L[0],P],[L[1],Q]],poly:null,
+    blanks:[{label:"rise",type:"int",either:"rise",v:Q[1]-P[1],hints:[`rise = y₂ − y₁ = ${num(Q[1])} − ${par(P[1])}`,"Remember: subtracting a negative is the same as adding."],step:`rise = ${num(Q[1])} − ${par(P[1])} = ${num(Q[1]-P[1])}`},
+      {label:"run",type:"int",either:"run",v:Q[0]-P[0],hints:[`run = x₂ − x₁ = ${num(Q[0])} − ${par(P[0])}`,"Use the x-values in the same order you used the y-values. (y₁ − y₂ and x₁ − x₂ works too.)"],step:`run = ${num(Q[0])} − ${par(P[0])} = ${num(Q[0]-P[0])}`},
+      {label:"slope",type:"slope",s,hints:slopeHints(L[0],P,L[1],Q),step:slopeSteps(L[0],P,L[1],Q)}]}}}
+function genDistBuilder(){for(let t=0;t<100;t++){const P=[rnd(-8,8),rnd(-8,8)],v=pick(VEC);const Q=add(P,v);if(!inRange([Q]))continue;const L=pick(LABELS);const dx=v[0],dy=v[1],N=dx*dx+dy*dy;
+  return {kind:"distB",title:"Start Here: find the distance",builder:"dist",
+    prompt:`Find the length of ${L[0]}${L[1]} for ${ptStr(L[0],P)} and ${ptStr(L[1],Q)}. Fill in each step.`,pts:[[L[0],P],[L[1],Q]],poly:null,
+    blanks:[{label:"x₂ − x₁",type:"int",either:"free",v:dx,hints:[`${num(Q[0])} − ${par(P[0])}`,"Subtracting a negative is adding."],step:`x₂ − x₁ = ${num(Q[0])} − ${par(P[0])} = ${num(dx)}`},
+      {label:"y₂ − y₁",type:"int",either:"free",v:dy,hints:[`${num(Q[1])} − ${par(P[1])}`,"Subtracting a negative is adding."],step:`y₂ − y₁ = ${num(Q[1])} − ${par(P[1])} = ${num(dy)}`},
+      {label:"sum of squares",type:"int",v:N,hints:[`(${par(dx)})² + (${par(dy)})²`,"A negative number squared is positive."],step:`${par(dx)}² + ${par(dy)}² = ${dx*dx} + ${dy*dy} = ${N}`},
+      {label:L[0]+L[1],type:"rad",N,hints:[`Take √${N} and simplify.`,radParts(N)[0]>1&&radParts(N)[1]>1?`${N} = ${radParts(N)[0]**2} · ${radParts(N)[1]}, and ${radParts(N)[0]**2} is a perfect square.`:`Is there a perfect square (4, 9, 16, 25, …) that divides ${N}?`],step:distSteps(L[0],P,L[1],Q)}]}}}
+
+const TYPES={
+  slopeB:{name:"Start Here: Slope",desc:"Rise, run, then slope",gen:genSlopeBuilder,start:true},
+  distB:{name:"Start Here: Distance",desc:"Differences, squares, then the square root",gen:genDistBuilder,start:true},
+  iso:{name:"Isosceles triangle?",desc:"Three side lengths",gen:genIso,claim:true},
+  right:{name:"Right angle?",desc:"Slopes of two sides",gen:genRight,claim:true},
+  para:{name:"Parallelogram?",desc:"Slopes of opposite sides",gen:genPara,claim:true},
+  rhombus:{name:"Rhombus?",desc:"Two consecutive sides",gen:genRhombus,claim:true},
+  rect:{name:"Rectangle?",desc:"Length of the diagonals",gen:genRect,claim:true},
+  square:{name:"Square?",desc:"Sides and diagonals",gen:genSquare,claim:true},
+  mistake:{name:"Find the mistake",desc:"Spot the error in a student's evidence",gen:genMistake},
+  classify:{name:"Full CER: name the shape",desc:"All slopes + two lengths, then classify",gen:genClassify},
+  mixed:{name:"⭐ Mixed set of 6",desc:"Like the test: a bit of everything",mixed:true}
+};
+
+/* ---------- storage ---------- */
+const STORE="cm1stats";
+let stats={};try{stats=JSON.parse(localStorage.getItem(STORE)||"{}")}catch(e){}
+function save(){try{localStorage.setItem(STORE,JSON.stringify(stats))}catch(e){}}
+
+/* ---------- answer parsing ---------- */
+function normRad(s){return s.replace(/\s+/g,"").replace(/sqrt/gi,"√").replace(/[()]/g,"").replace(/−/g,"-")}
+function checkRad(s,N){const t=normRad(s);if(!t)return {st:"no",msg:"Enter a length."};
+  let m=t.match(/^(\d*)√(\d+)$/);let val=null,simplified=false;
+  if(m){const a=m[1]?+m[1]:1,b=+m[2];val=a*a*b;simplified=radParts(b)[0]===1&&b!==1&&!(m[1]==="1")}
+  else if(/^\d+$/.test(t)){val=(+t)**2;simplified=true}
+  else if(/^\d*\.\d+$/.test(t)){const x=+t;if(Math.abs(x-Math.sqrt(N))<0.015)return {st:"almost",msg:`That decimal is close, but write it in simplified radical form: ${radStr(N)}.`};return {st:"no",msg:"Not quite."}}
+  else return {st:"no",msg:"Use simplified radical form, like 3√5 (or 3sqrt5)."};
+  if(val!==N)return {st:"no",msg:"Not quite."};
+  if(!simplified)return {st:"almost",msg:`Right value, but simplify it: ${radStr(N)}.`};
+  return {st:"ok"}}
+function checkSlope(s,sl){const t=s.trim().toLowerCase().replace(/−/g,"-").replace(/\s+/g,"");if(!t)return {st:"no",msg:"Enter a slope."};
+  if(/^(undefined|und|undef|none|dne)$/.test(t))return sl.und?{st:"ok"}:{st:"no",msg:"This slope isn't undefined."};
+  if(sl.und)return {st:"no",msg:"Check the run (x₂ − x₁)."};
+  let m=t.match(/^(-?\d+)\/(-?\d+)$/);let n,d;
+  if(m){n=+m[1];d=+m[2];if(d===0)return {st:"no",msg:"Dividing by 0 means undefined."}}
+  else if(/^-?\d+$/.test(t)){n=+t;d=1}
+  else if(/^-?\d*\.\d+$/.test(t)){const x=+t;if(Math.abs(x-sl.n/sl.d)<1e-9)return {st:"ok"};return {st:"no",msg:"Not quite."}}
+  else return {st:"no",msg:"Write the slope as a fraction like −3/4, an integer, or undefined."};
+  if(n*sl.d===sl.n*d){const g=gcd(n,d);if(g>1)return {st:"ok",note:`Correct! ${s.trim()} simplifies to ${slopeStr(sl)}. Simplified slopes are easier to compare.`};return {st:"ok"}}
+  return {st:"no",msg:"Not quite."}}
+function checkInt(s,v){const t=s.trim().replace(/−/g,"-");if(!/^-?\d+$/.test(t))return {st:"no",msg:"Enter a whole number."};return +t===v?{st:"ok"}:{st:"no",msg:"Not quite."}}
+
+/* ---------- graph ---------- */
+function graph(pts,poly){if(!pts)return "";const xs=pts.map(p=>p[1][0]),ys=pts.map(p=>p[1][1]);
+  let lo=Math.min(...xs,...ys,0)-2,hi=Math.max(...xs,...ys,0)+2;const S=280,sc=S/(hi-lo),X=x=>(x-lo)*sc,Y=y=>S-(y-lo)*sc;
+  let g=`<svg viewBox="0 0 ${S} ${S}" role="img" aria-label="Graph of the points">`;
+  for(let i=Math.ceil(lo);i<=hi;i++){g+=`<line x1="${X(i)}" y1="0" x2="${X(i)}" y2="${S}" stroke="${i===0?'#555':'#e3e3e3'}" stroke-width="${i===0?1.4:1}"/><line x1="0" y1="${Y(i)}" x2="${S}" y2="${Y(i)}" stroke="${i===0?'#555':'#e3e3e3'}" stroke-width="${i===0?1.4:1}"/>`}
+  if(poly)g+=`<polygon points="${poly.map(p=>X(p[0])+","+Y(p[1])).join(" ")}" fill="rgba(76,140,140,.18)" stroke="#376f7a" stroke-width="2"/>`;
+  else if(pts.length===2)g+=`<line x1="${X(pts[0][1][0])}" y1="${Y(pts[0][1][1])}" x2="${X(pts[1][1][0])}" y2="${Y(pts[1][1][1])}" stroke="#376f7a" stroke-width="2"/>`;
+  pts.forEach(([L,p])=>{g+=`<circle cx="${X(p[0])}" cy="${Y(p[1])}" r="3.5" fill="#d99a3d"/><text x="${X(p[0])+5}" y="${Y(p[1])-5}" font-size="13" font-weight="700" fill="#263b40">${L}</text>`});
+  return g+"</svg>"}
+
+/* ---------- session ---------- */
+let S={list:[],i:0,cur:null,mode:null,score:0,attempted:0,checked:false,lastInput:null};
+function makeSet(mode){
+  if(mode!=="mixed"){return Array.from({length:6},()=>mode)}
+  const claimTypes=shuffle(["iso","right","para","rhombus","rect","square"]).slice(0,4);
+  return shuffle(claimTypes.concat(["mistake","classify"]))}
+function genFor(type,truth){const g=TYPES[type].gen;return TYPES[type].claim?g(truth):g()}
+function buildTruths(list){const claims=list.filter(t=>TYPES[t].claim).length;const tr=shuffle(Array.from({length:claims},(_,i)=>i<Math.ceil(claims/2)));let k=0;return list.map(t=>TYPES[t].claim?tr[k++]:null)}
+function load(problem){const type=S.list[S.i];S.cur=problem||genFor(type,S.truths[S.i]);S.checked=false;render();window.scrollTo({top:0,behavior:"smooth"})}
+function render(){const p=S.cur;document.getElementById("probTitle").textContent=p.title;document.getElementById("probCount").textContent=`Problem ${S.i+1} of ${S.list.length}`;
+  document.getElementById("probBar").style.width=(S.i/S.list.length*100)+"%";
+  let h=`<p class="prompt">${p.prompt}</p>`;
+  if(p.work)h+=`<div class="work">${p.work}</div>`;
+  if(p.pts&&p.kind!=="mistake"||p.pts&&p.poly)h+=`<details ${p.builder?"open":""} style="margin:6px 0"><summary class="muted" style="cursor:pointer">Show the graph</summary><div class="graphwrap">${graph(p.pts,p.poly)}</div></details>`;
+  if(p.blanks){h+=`<div class="row" style="margin:6px 0"><button class="ghost small sqrtbtn" onclick="ins('√')">√</button><button class="ghost small" onclick="ins('−')">−</button><button class="ghost small" onclick="ins('/')">/</button><span class="muted">tap to type into the last box you clicked</span></div>`;
+    p.blanks.forEach((b,k)=>{h+=`<div class="blank"><label for="b${k}">${b.label.startsWith("m")&&b.type==="slope"&&b.label.length>1?"m<sub>"+b.label.slice(1)+"</sub>":b.label} =</label>
+      <input type="text" id="b${k}" autocomplete="off" onfocus="S.lastInput=this" placeholder="${b.type==='slope'?'e.g. −3/4 or undefined':b.type==='rad'?'e.g. 3√5':''}">
+      <button class="ghost small" onclick="hint(${k})" id="hb${k}">💡 Hint</button><div class="hint" id="h${k}"></div></div>`})}
+  if(p.claim){h+=`<div class="claims" id="claims">${[["yes",p.claim.yes],["no",p.claim.no]].map(([v,t])=>`<label><input type="radio" name="cl" value="${v}" onchange="markPick(this)"> ${t}</label>`).join("")}</div>`}
+  if(p.classify){h+=`<p style="margin:10px 0 4px"><b>Most specific name:</b> <select id="cls"><option value="">Choose…</option>${p.classify.options.map(o=>`<option>${o}</option>`).join("")}</select></p>`}
+  if(p.mc){h+=`<div class="mc" id="mc">${p.mc.map((o,k)=>`<label><input type="radio" name="mc" value="${k}"> ${o.t}</label>`).join("")}</div>`}
+  document.getElementById("prob").innerHTML=h;const fb=document.getElementById("fb");fb.style.display="none";fb.className="fb";
+  const cb=document.getElementById("checkBtn");cb.style.display="";cb.textContent="Check";document.getElementById("similarBtn").style.display="none";document.getElementById("nextBtn").style.display="none";
+  S.hintLvl={};}
+function ins(ch){const el=S.lastInput||document.querySelector("#prob input[type=text]");if(!el)return;const a=el.selectionStart??el.value.length,b=el.selectionEnd??el.value.length;el.value=el.value.slice(0,a)+ch+el.value.slice(b);el.focus();el.selectionStart=el.selectionEnd=a+ch.length}
+function hint(k){const b=S.cur.blanks[k];const lv=(S.hintLvl[k]||0);const el=document.getElementById("h"+k);el.style.display="block";
+  el.innerHTML=b.hints.slice(0,lv+1).map((x,i)=>`<div>${i===0?"Step 1":"Step 2"}: ${x}</div>`).join("");S.hintLvl[k]=Math.min(lv+1,b.hints.length);
+  if(S.hintLvl[k]>=b.hints.length)document.getElementById("hb"+k).disabled=true}
+function markPick(r){document.querySelectorAll("#claims label").forEach(l=>l.classList.toggle("pick",l.contains(r)))}
+/* ---------- checking ---------- */
+/* orient: 1 if the student subtracted y₂ − y₁ for the rise, −1 if y₁ − y₂ (the run has to match) */
+function checkEither(b,el,orient){const t=el.value.trim().replace(/−/g,"-");
+  if(!/^-?\d+$/.test(t))return {st:"no",msg:"Enter a whole number."};const v=+t;
+  if(b.either==="rise"){if(v===b.v)return {st:"ok",orient:b.v?1:null};if(v===-b.v)return {st:"ok",orient:-1};return {st:"no",msg:"Not quite."}}
+  if(b.either==="run"){if(orient==null||!b.v)return (v===b.v||v===-b.v)?{st:"ok"}:{st:"no",msg:"Not quite."};
+    if(v===orient*b.v)return {st:"ok"};if(v===-orient*b.v)return {st:"no",msg:"Subtract the x-values in the same order you subtracted the y-values. If you did y₁ − y₂, do x₁ − x₂."};return {st:"no",msg:"Not quite."}}
+  return (v===b.v||v===-b.v)?{st:"ok"}:{st:"no",msg:"Not quite."}}
+function checkBlank(b,k,orient){
+  if(b.type==="rule"){const ea=document.getElementById("b"+k+"a"),eb=document.getElementById("b"+k+"b");const r=checkRuleIn(ea.value,eb.value,b.r,b.traps);
+    [ea,eb].forEach(e=>e.classList.remove("ok","no","almost"));
+    if(r.st==="ok"||r.st==="almost"){ea.classList.add(r.st);eb.classList.add(r.st)}else{ea.classList.add(r.okA?"ok":"no");eb.classList.add(r.okB?"ok":"no")}
+    return r}
+  const el=document.getElementById("b"+k);
+  const r=b.type==="int"&&b.either?checkEither(b,el,orient):b.type==="rad"?checkRad(el.value,b.N):b.type==="slope"?checkSlope(el.value,b.s):b.type==="pt"?checkPt(el.value,b.P,b.traps):b.type==="expr"?checkExpr(el.value,b.e,b.traps):checkInt(el.value,b.v);
+  el.classList.remove("ok","no","almost");el.classList.add(r.st);return r}
+function check(){const p=S.cur;let allOk=true,msgs=[],notes=[],steps=[],orient=null;
+  if(p.blanks)p.blanks.forEach((b,k)=>{const r=checkBlank(b,k,orient);if(r.orient!==undefined)orient=r.orient;const lab=b.label.replace(/ \(.*/,"");
+    if(r.st!=="ok"){allOk=false;msgs.push(`<b>${lab}:</b> ${r.msg}`)}else if(r.note)notes.push(`<b>${lab}:</b> ${r.note}`);steps.push(b.step)});
+  let concl="";
+  if(p.claim){const sel=document.querySelector('input[name=cl]:checked');const want=p.claim.truth?"yes":"no";
+    document.querySelectorAll("#claims label").forEach(l=>{const v=l.querySelector("input").value;l.classList.remove("ok","no");if(v===want)l.classList.add("ok");else if(sel&&sel.value===v)l.classList.add("no")});
+    if(!sel||sel.value!==want){allOk=false;if(!sel)msgs.push("<b>Claim:</b> choose one.")}concl=p.claim.why}
+  if(p.classify){const v=document.getElementById("cls").value;if(v!==p.classify.answer){allOk=false;msgs.push(v?`<b>Name:</b> not ${v}.`:"<b>Name:</b> choose one.")}concl=`<b>${p.classify.answer}.</b> ${p.classify.why}`}
+  if(p.mc){const sel=document.querySelector('input[name=mc]:checked');document.querySelectorAll("#mc label").forEach((l,k)=>{l.classList.remove("ok","no");if(p.mc[k].ok)l.classList.add("ok");else if(sel&&+sel.value===k)l.classList.add("no")});
+    if(!sel||!p.mc[+sel.value].ok){allOk=false;if(!sel)msgs.push("<b>Answer:</b> choose one.")}concl=p.why}
+  if(!p.claim&&!p.mc&&!p.classify&&p.why)concl=p.why;
+  const fb=document.getElementById("fb");fb.style.display="block";fb.className="fb "+(allOk?"good":"bad");
+  fb.innerHTML=(allOk?"<b>✅ Correct!</b>":"<b>Not quite. Here's how it works:</b>")+(msgs.length&&!allOk?`<div style="margin:6px 0">${msgs.join("<br>")}</div>`:"")+
+    (notes.length?`<div class="note">💡 ${notes.join("<br>")}</div>`:"")+
+    (steps.length?`<div style="margin-top:6px">${steps.map(s=>`<div class="step">${s}</div>`).join("")}</div>`:"")+(concl?`<p style="margin:8px 0 0">${concl}</p>`:"")+
+    (p.after&&typeof GCOL!=="undefined"?`<div class="graphwrap" style="margin-top:8px">${graph(p.after)}</div>`:"");
+  const t=p.kind;stats[t]=stats[t]||{c:0,a:0};if(!S.checked){stats[t].a++;if(allOk)stats[t].c++;S.attempted++;if(allOk)S.score++;save()}S.checked=true;saveSet();
+  document.getElementById("checkBtn").style.display="none";document.getElementById("similarBtn").style.display=allOk?"none":"";document.getElementById("nextBtn").style.display="";}
+
+/* ---------- sets, progress and navigation ---------- */
+function start(mode){S={list:makeSet(mode),i:0,mode,score:0,attempted:0};S.truths=buildTruths(S.list);showProb();load();saveSet()}
+function showProb(){document.getElementById("menuCard").style.display="none";document.getElementById("doneCard").style.display="none";document.getElementById("probCard").style.display="block";updBack()}
+/* the unfinished set is saved so a student can leave and come back */
+function saveSet(){try{if(S&&S.list&&S.i<S.list.length)localStorage.setItem(STORE+"set",JSON.stringify({mode:S.mode,list:S.list,i:S.i,score:S.score,attempted:S.attempted,truths:S.truths,checked:!!S.checked}));else localStorage.removeItem(STORE+"set")}catch(e){}}
+function savedSet(){try{const s=JSON.parse(localStorage.getItem(STORE+"set")||"null");if(!s||!Array.isArray(s.list)||!s.list.every(t=>TYPES[t]))return null;
+  if(s.checked){s.i++;s.checked=false}return s.i<s.list.length?s:null}catch(e){return null}}
+function resume(){const s=savedSet();if(!s)return;S={...s,cur:null};showProb();load();saveSet()}
+function updBack(){const b=document.getElementById("backBtn");if(!b)return;b.textContent=document.getElementById("menuCard").style.display!=="none"?"← All sections":"← Back to this section's menu"}
+function goBack(){if(document.getElementById("menuCard").style.display!=="none")location.href="index.html";else backToMenu()}
+function totalDone(){return Object.entries(stats).filter(([k])=>TYPES[k]).reduce((s,[,v])=>s+(v.a||0),0)}
+function similar(){const type=S.list[S.i];load(genFor(type,TYPES[type].claim?Math.random()<.5:null))}
+function next(){S.i++;document.getElementById("checkBtn").textContent="Check";if(S.i>=S.list.length){saveSet();return done()}load();saveSet()}
+function done(){document.getElementById("probCard").style.display="none";const c=document.getElementById("doneCard");c.style.display="block";
+  c.innerHTML=`<h2>Set complete!</h2><p>You got <b>${S.score}</b> of <b>${S.attempted}</b> right on the first try.</p><p>Practice problems done in this section: <b>${totalDone()}</b></p>
+  <div class="row"><button onclick="start('${S.mode}')">Another set</button><button class="ghost" onclick="backToMenu()">Menu</button></div>`;updBack()}
+function backToMenu(){document.getElementById("probCard").style.display="none";document.getElementById("doneCard").style.display="none";document.getElementById("menuCard").style.display="block";drawMenu();window.scrollTo({top:0})}
+function toggleTool(){document.getElementById("tool").classList.toggle("open")}
+function drawMenu(){const s=savedSet();
+  document.getElementById("count").innerHTML=`Practice problems done in this section: <b>${totalDone()}</b>`;
+  document.getElementById("menu").innerHTML=(s?`<button class="resume" onclick="resume()">▶ Resume your set<small>${TYPES[s.mode]?TYPES[s.mode].name:"Practice set"} · problem ${s.i+1} of ${s.list.length}</small></button>`:"")+
+    Object.entries(TYPES).map(([k,t])=>{const d=!t.mixed&&stats[k]?stats[k].a:0;return `<button class="${t.start?'start':''}" onclick="start('${k}')">${t.name}<small>${t.desc}${d?` · ${d} done`:""}</small></button>`}).join("");
+  const rows=Object.entries(stats).filter(([k])=>TYPES[k]).map(([k,v])=>`${TYPES[k].name}: ${v.c}/${v.a}`);
+  document.getElementById("stats").innerHTML=rows.length?`<p class="muted" style="margin:0">Your progress (first-try correct / tried): ${rows.join(" · ")}</p>`:"";updBack()}
+drawMenu();
+</script>
+</body>
+</html>
